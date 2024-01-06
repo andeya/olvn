@@ -1,0 +1,66 @@
+[package]
+name = "olvn"
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
+description = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+categories = { workspace = true }
+keywords = { workspace = true }
+readme = { workspace = true }
+
+[lib]
+name = "olvn"          # The name of the target.
+path = "src/lib.rs"    # The source file of the target.
+test = true            # Is tested by default.
+doctest = true         # Documentation examples are tested by default.
+bench = true           # Is benchmarked by default.
+doc = true             # Is documented by default.
+plugin = false         # Used as a compiler plugin (deprecated).
+proc-macro = false     # Set to `true` for a proc-macro library.
+harness = true         # Use libtest harness.
+crate-type = ["lib"]   # The crate types to generate.
+required-features = [] # Features required to build this target (N/A for lib).
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = { workspace = true }
+serde = { workspace = true }
+snafu = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+bytes = { workspace = true }
+tower-service = { workspace = true }
+axum-core = { workspace = true }
+arc-swap = { workspace = true }
+lazy_static = { workspace = true }
+
+[workspace]
+resolver = "2"
+members = ["olvn-derive"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["andeya <andeyalee@outlook.com>"]
+description = "Enterprise-level High Availability Gateway."
+license = "Apache-2.0"
+repository = "https://github.com/andeya/olvn"
+categories = ["Gateway"]
+keywords = ["gateway", "web", "cloud-native"]
+readme = "./README.md"
+
+[workspace.dependencies]
+axum = "0.7.3"
+serde = "1.0.189"
+snafu = "0.8.0"
+async-trait = "0.1.74"
+tokio = { version = "1.35.1", features = ["full"] }
+bytes = "1.0"
+tower-layer = "0.3.2"
+tower-service = "0.3"
+axum-core = "0.4.2"
+arc-swap = "1.6.0"
+lazy_static = "1"
