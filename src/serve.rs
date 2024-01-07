@@ -1,60 +1,36 @@
-#[cfg(test)]
-mod tests {
-    use crate::routing;
-    use axum::{routing::get, Router};
-    use lazy_static::lazy_static;
-    use routing::DynamicRouter;
-    #[tokio::test]
-    async fn it_work() {
-        // build our application with a single route
-        lazy_static! {
-            static ref ROUTER: DynamicRouter = DynamicRouter::new();
-        }
-        static mut BLUE: Option<Router> = None;
-        static mut GREEN: Option<Router> = None;
-        unsafe {
-            BLUE = Some(
-                Router::new()
-                    .route(
-                        "/",
-                        get(|| async {
-                            println!("Hello, Blue!");
-                            "Hello, Blue!"
-                        }),
-                    )
-                    .route(
-                        "/green",
-                        get(|| async {
-                            ROUTER.switch(GREEN.clone().unwrap());
-                            println!("Switch to Green!");
-                            "Switch to Green!"
-                        }),
-                    ),
-            );
+use std::{future::Future, sync::Mutex};
 
-            GREEN = Some(
-                Router::new()
-                    .route(
-                        "/",
-                        get(|| async {
-                            println!("Hello, Green!");
-                            "Hello, Green!"
-                        }),
-                    )
-                    .route(
-                        "/blue",
-                        get(|| async {
-                            ROUTER.switch(BLUE.clone().unwrap());
-                            println!("Switch to Blue!");
-                            "Switch to Blue!"
-                        }),
-                    ),
-            );
-            ROUTER.switch(BLUE.clone().unwrap());
+use crate::routing::{DynamicRouter, Router};
+pub use tokio::net::TcpListener;
+pub struct Serve {
+    make_service: Mutex<Option<DynamicRouter>>,
+}
+impl Serve {
+    pub const fn new() -> Self {
+        Self {
+            make_service: Mutex::new(None),
         }
-
-        // run our app with hyper, listening globally on port 3000
-        let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-        axum::serve(listener, ROUTER.clone()).await.unwrap();
+    }
+    fn get_or_init_make_service(&self) -> DynamicRouter {
+        let mut make_service = self.make_service.lock().unwrap();
+        if make_service.is_none() {
+            let _ = make_service.insert(DynamicRouter::new());
+        }
+        make_service.clone().unwrap()
+    }
+    pub(crate) fn switch_router(&self, router: Router) -> &Self {
+        self.get_or_init_make_service().switch(router);
+        self
+    }
+    pub async fn serve(&self, listener: TcpListener) -> Result<(), std::io::Error> {
+        axum::serve(listener, self.get_or_init_make_service()).await
+    }
+    pub async fn serve_with_graceful_shutdown<F>(&self, listener: TcpListener, signal: F) -> Result<(), std::io::Error>
+    where
+        F: Future<Output = ()> + Send + 'static,
+    {
+        axum::serve(listener, self.get_or_init_make_service())
+            .with_graceful_shutdown(signal)
+            .await
     }
 }

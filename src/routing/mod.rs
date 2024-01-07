@@ -1,6 +1,6 @@
 use axum::body::{Body, HttpBody};
 use axum::routing::future::RouteFuture;
-use axum::routing::Router;
+pub use axum::routing::Router;
 use axum_core::{
     extract::Request,
     response::{IntoResponse, Response},
