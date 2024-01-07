@@ -1,43 +1,45 @@
-use axum::body::{Body, HttpBody};
+pub use self::dynamic::DynamicRouter;
+use self::dynamic::InnerDynamicRouter;
+use arc_swap::{ArcSwap, AsRaw};
+use axum::body::HttpBody;
+use axum::http::Request;
 use axum::routing::future::RouteFuture;
 pub use axum::routing::Router;
-use axum_core::{
-    extract::Request,
-    response::{IntoResponse, Response},
-};
+use axum_core::response::Response;
 use std::convert::Infallible;
-
-use arc_swap::{ArcSwap, AsRaw};
 use std::sync::Arc;
 use std::task::{Context, Poll};
-use tower_service::Service;
+use tower::Service;
+
+pub mod dynamic;
+pub(crate) mod host;
 
 #[derive(Debug, Clone)]
-pub(crate) struct DynamicRouter<S = ()> {
-    inner: Arc<ArcSwap<Router<S>>>,
+pub(crate) struct GwRouter {
+    // routers[0] is the fallback router, and its domain is $FALLBACK_DOMAIN.
+    inner_router: Arc<ArcSwap<InnerDynamicRouter>>,
 }
-
-impl<S> Default for DynamicRouter<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+unsafe impl Send for GwRouter {}
+unsafe impl Sync for GwRouter {}
+impl Default for GwRouter {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<S> DynamicRouter<S>
-where
-    S: Clone + Send + Sync + 'static,
-{
+impl GwRouter {
     pub(crate) fn new() -> Self {
         Self {
-            inner: Arc::new(ArcSwap::from(Arc::new(Router::default()))),
+            inner_router: Arc::new(ArcSwap::from(Arc::new(InnerDynamicRouter::default()))),
         }
     }
-
-    pub(crate) fn switch(&self, router: Router<S>) {
-        self.inner.store(Arc::new(router))
+    pub(crate) fn get_inner_routers(&self) -> &InnerDynamicRouter {
+        unsafe { &*self.inner_router.load().as_raw() }
+    }
+    pub(crate) fn refresh(&self, router: DynamicRouter) {
+        self.inner_router.store(Arc::new(
+            router.into_inner(|| self.inner_router.load().fallback_router().router.clone()),
+        ))
     }
 }
 
@@ -45,7 +47,7 @@ where
 const _: () = {
     use axum::serve::IncomingStream;
 
-    impl Service<IncomingStream<'_>> for DynamicRouter<()> {
+    impl Service<IncomingStream<'_>> for GwRouter {
         type Response = Self;
         type Error = Infallible;
         type Future = std::future::Ready<Result<Self::Response, Self::Error>>;
@@ -60,7 +62,7 @@ const _: () = {
     }
 };
 
-impl<B> Service<Request<B>> for DynamicRouter<()>
+impl<B> Service<Request<B>> for GwRouter
 where
     B: HttpBody<Data = bytes::Bytes> + Send + 'static,
     B::Error: Into<axum_core::BoxError>,
@@ -76,11 +78,6 @@ where
 
     #[inline]
     fn call(&mut self, req: Request<B>) -> Self::Future {
-        loop {
-            return unsafe { &mut *self.inner.load().as_raw() }.call(req);
-        }
+        unsafe { &mut *self.inner_router.load().as_raw() }.call(req)
     }
 }
-
-unsafe impl Send for DynamicRouter<()> {}
-unsafe impl Sync for DynamicRouter<()> {}

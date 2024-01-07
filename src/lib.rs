@@ -3,10 +3,9 @@ mod serve;
 pub use crate::routing::*;
 pub use crate::serve::*;
 
-
 #[cfg(test)]
 mod tests {
-    use crate::serve::*;
+    use crate::*;
     use axum::{routing::get, Router};
     use tokio::time::{sleep, Duration};
     async fn signal() {
@@ -32,7 +31,7 @@ mod tests {
                     .route(
                         "/green",
                         get(|| async {
-                            SERVE.switch_router(GREEN.clone().unwrap());
+                            SERVE.refresh_router(DynamicRouter::from_fallback(GREEN.clone().unwrap()));
                             println!("Switch to Green!");
                             "Switch to Green!"
                         }),
@@ -51,18 +50,18 @@ mod tests {
                     .route(
                         "/blue",
                         get(|| async {
-                            SERVE.switch_router(BLUE.clone().unwrap());
+                            SERVE.refresh_router(DynamicRouter::from_fallback(BLUE.clone().unwrap()));
                             println!("Switch to Blue!");
                             "Switch to Blue!"
                         }),
                     ),
             );
-            SERVE.switch_router(BLUE.clone().unwrap());
+            SERVE.refresh_router(DynamicRouter::from_fallback(BLUE.clone().unwrap()));
         }
 
         // run our app with hyper, listening globally on port 3000
         let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
-        // SERVE.serve(listener).await.unwrap();
-        SERVE.serve_with_graceful_shutdown(listener, signal()).await.unwrap();
+        SERVE.serve(listener).await.unwrap();
+        // SERVE.serve_with_graceful_shutdown(listener, signal()).await.unwrap();
     }
 }

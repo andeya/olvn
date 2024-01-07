@@ -36,6 +36,8 @@ tower-service = { workspace = true }
 axum-core = { workspace = true }
 arc-swap = { workspace = true }
 lazy_static = { workspace = true }
+tower = { workspace = true }
+http = { workspace = true }
 
 [workspace]
 resolver = "2"
@@ -59,8 +61,10 @@ snafu = "0.8.0"
 async-trait = "0.1.74"
 tokio = { version = "1.35.1", features = ["full"] }
 bytes = "1.0"
+tower = { version = "0.4.13", features = ["util"], default-features = false }
 tower-layer = "0.3.2"
 tower-service = "0.3"
 axum-core = "0.4.2"
 arc-swap = "1.6.0"
 lazy_static = "1"
+http = "1"
