@@ -50,7 +50,7 @@ authors = ["andeya <andeyalee@outlook.com>"]
 description = "Enterprise-level High Availability Gateway."
 license = "Apache-2.0"
 repository = "https://github.com/andeya/olvn"
-categories = ["Gateway"]
+categories = ["web-programming"]
 keywords = ["gateway", "web", "cloud-native"]
 readme = "./README.md"
 
