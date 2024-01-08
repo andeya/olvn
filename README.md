@@ -6,26 +6,16 @@ Enterprise-level High Availability Gateway.
 [![Documentation](https://shields.io/docsrs/olvn)][olvn-docs]
 [![License](https://img.shields.io/crates/l/olvn)][license]
 
-#### Description
+## Highlights
 
-#### Software Architecture
-Software architecture description
-
-#### Installation
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### Instructions
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
+- 🚀 Dynamic routing that supports hot updates.
+- 🎨 API Runtime Specification (ARS), all necessary data required for normal request traffic in the gateway data plane.
 
 
-#### Feature
+## Getting started
 
-1. Dynamic routing that supports hot updates.
-1. API Runtime Specification (ARS), all necessary data required for normal request traffic in the gateway data plane.
+
+
+
+
 
