@@ -1,7 +1,12 @@
 # olvn
 
-#### Description
 Enterprise-level High Availability Gateway.
+
+[![Crates.io](https://img.shields.io/crates/v/olvn)][olvn]
+[![Documentation](https://shields.io/docsrs/olvn)][olvn-docs]
+[![License](https://img.shields.io/crates/l/olvn)][license]
+
+#### Description
 
 #### Software Architecture
 Software architecture description
@@ -21,5 +26,6 @@ Software architecture description
 
 #### Feature
 
-1. Dynamic routing
+1. Dynamic routing that supports hot updates.
+1. API Runtime Specification (ARS), all necessary data required for normal request traffic in the gateway data plane.
 
