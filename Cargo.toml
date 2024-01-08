@@ -44,7 +44,7 @@ resolver = "2"
 members = ["olvn-derive"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["andeya <andeyalee@outlook.com>"]
 description = "Enterprise-level High Availability Gateway."
