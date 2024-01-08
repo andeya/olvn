@@ -4,6 +4,7 @@
 //! required for normal request traffic in the gateway data plane.
 
 pub mod codec;
+pub mod discovery;
 pub mod egress;
 pub mod ingress;
 pub mod protocol;

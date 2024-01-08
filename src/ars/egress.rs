@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{codec::CodecType, protocol::ProtocolType, Namespace};
+use super::{codec::CodecType, discovery::ServiceDiscoveryMode, protocol::ProtocolType, Namespace};
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct EgressRegistry {
@@ -12,9 +12,6 @@ pub struct EgressSpecification {
     pub namespace: Namespace,
     pub service_definitions: HashMap<u32, UpstreamServer>,
 }
-
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ServiceDiscoveryMode(u8);
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct UpstreamServer {
