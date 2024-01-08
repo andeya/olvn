@@ -1,6 +1,13 @@
 use std::collections::HashMap;
 
+use super::Namespace;
+
+pub struct EgressRegistry {
+    specifications: HashMap<Namespace, EgressSpecification>,
+}
+
 pub struct EgressSpecification {
+    namespace: Namespace,
     service_definitions: HashMap<u32, UpstreamServer>,
 }
 

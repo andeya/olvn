@@ -2,7 +2,14 @@ use std::collections::HashMap;
 
 use axum::http::{HeaderName, Method};
 
+use super::Namespace;
+
+pub struct IngressRegistry {
+    specifications: HashMap<Namespace, IngressSpecification>,
+}
+
 pub struct IngressSpecification {
+    namespace: Namespace,
     domain_groups: HashMap<String, IngressDomainGroup>,
 }
 
