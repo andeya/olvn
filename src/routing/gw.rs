@@ -15,62 +15,9 @@ use tower::Service;
 use super::domain::{DomainRouter, FALLBACK_NO_DOMAIN};
 
 #[derive(Debug, Clone)]
-pub(crate) struct InnerDynamicRouter(Vec<DomainRouter>);
+pub struct GwRouter(BTreeMap<Domain, StateRouter>);
 
-impl Default for InnerDynamicRouter {
-    fn default() -> Self {
-        Self::new(None)
-    }
-}
-
-impl InnerDynamicRouter {
-    fn new(fallback_router: Option<Router>) -> Self {
-        Self(vec![DomainRouter::new(
-            FALLBACK_NO_DOMAIN.clone(),
-            fallback_router.unwrap_or_else(not_found_router),
-        )])
-    }
-    #[inline]
-    pub(crate) fn fallback_router(&self) -> &DomainRouter {
-        &self.0[0]
-    }
-    #[inline]
-    pub(crate) fn fallback_router_mut(&mut self) -> &mut DomainRouter {
-        &mut self.0[0]
-    }
-}
-
-impl InnerDynamicRouter {
-    #[inline]
-    pub(crate) fn call<B>(&mut self, req: Request<B>) -> RouteFuture<Infallible>
-    where
-        B: HttpBody<Data = bytes::Bytes> + Send + 'static,
-        B::Error: Into<axum_core::BoxError>,
-    {
-        if let Some(hostname) = get_host_from_request(&req) {
-            for router in &mut self.0[1..] {
-                if router.domain == hostname {
-                    return router.router.call(req);
-                }
-            }
-        }
-        return self.fallback_router_mut().router.call(req);
-    }
-}
-
-pub(crate) fn not_found_router<S: Clone + Send + Sync + 'static>() -> Router<S> {
-    Router::new().route(
-        "/*path",
-        routing::any(|| async {
-            return StatusCode::NOT_FOUND;
-        }),
-    )
-}
-
-#[derive(Debug, Clone)]
-pub struct DynamicRouter(BTreeMap<Domain, StateRouter>);
-
-impl DynamicRouter {
+impl GwRouter {
     pub fn new() -> Self {
         Self(BTreeMap::new())
     }
@@ -95,9 +42,9 @@ impl DynamicRouter {
     pub fn get_mut(&mut self, domain: &Domain) -> Option<&mut StateRouter> {
         self.0.get_mut(domain)
     }
-    pub(crate) fn into_inner<F: Fn() -> Router>(mut self, fallback: F) -> InnerDynamicRouter {
+    pub(crate) fn into_inner<F: Fn() -> Router>(mut self, fallback: F) -> InnerGwRouter {
         let state = GwState::default();
-        let mut inner = InnerDynamicRouter::new(Some(if let Some(fallback) = self.0.remove(&FALLBACK_NO_DOMAIN) {
+        let mut inner = InnerGwRouter::new(Some(if let Some(fallback) = self.0.remove(&FALLBACK_NO_DOMAIN) {
             fallback.with_state(state.clone())
         } else {
             fallback()
@@ -107,4 +54,57 @@ impl DynamicRouter {
         }
         inner
     }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct InnerGwRouter(Vec<DomainRouter>);
+
+impl Default for InnerGwRouter {
+    fn default() -> Self {
+        Self::new(None)
+    }
+}
+
+impl InnerGwRouter {
+    fn new(fallback_router: Option<Router>) -> Self {
+        Self(vec![DomainRouter::new(
+            FALLBACK_NO_DOMAIN.clone(),
+            fallback_router.unwrap_or_else(not_found_router),
+        )])
+    }
+    #[inline]
+    pub(crate) fn fallback_router(&self) -> &DomainRouter {
+        &self.0[0]
+    }
+    #[inline]
+    pub(crate) fn fallback_router_mut(&mut self) -> &mut DomainRouter {
+        &mut self.0[0]
+    }
+}
+
+impl InnerGwRouter {
+    #[inline]
+    pub(crate) fn call<B>(&mut self, req: Request<B>) -> RouteFuture<Infallible>
+    where
+        B: HttpBody<Data = bytes::Bytes> + Send + 'static,
+        B::Error: Into<axum_core::BoxError>,
+    {
+        if let Some(hostname) = get_host_from_request(&req) {
+            for router in &mut self.0[1..] {
+                if router.domain == hostname {
+                    return router.router.call(req);
+                }
+            }
+        }
+        return self.fallback_router_mut().router.call(req);
+    }
+}
+
+pub(crate) fn not_found_router<S: Clone + Send + Sync + 'static>() -> Router<S> {
+    Router::new().route(
+        "/*path",
+        routing::any(|| async {
+            return StatusCode::NOT_FOUND;
+        }),
+    )
 }

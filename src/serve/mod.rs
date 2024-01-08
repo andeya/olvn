@@ -1,9 +1,9 @@
-use crate::routing::{DynamicRouter, GwRouter};
+use crate::routing::{DynRouter, GwRouter};
 use std::{future::Future, sync::Mutex};
 pub use tokio::net::TcpListener;
 
 pub struct Serve {
-    make_service: Mutex<Option<GwRouter>>,
+    make_service: Mutex<Option<DynRouter>>,
 }
 impl Serve {
     pub const fn new() -> Self {
@@ -11,14 +11,14 @@ impl Serve {
             make_service: Mutex::new(None),
         }
     }
-    fn get_or_init_router(&self) -> GwRouter {
+    fn get_or_init_router(&self) -> DynRouter {
         let mut make_service = self.make_service.lock().unwrap();
         if make_service.is_none() {
-            let _ = make_service.insert(GwRouter::new());
+            let _ = make_service.insert(DynRouter::new());
         }
         make_service.clone().unwrap()
     }
-    pub fn refresh_router(&self, router: DynamicRouter) -> &Self {
+    pub fn hot_update(&self, router: GwRouter) -> &Self {
         self.get_or_init_router().refresh(router);
         self
     }

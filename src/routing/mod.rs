@@ -1,5 +1,5 @@
-pub use self::dynamic::DynamicRouter;
-use self::dynamic::InnerDynamicRouter;
+pub use self::gw::GwRouter;
+use self::gw::InnerGwRouter;
 use crate::state::GwState;
 use arc_swap::{ArcSwap, AsRaw};
 use axum::body::HttpBody;
@@ -13,34 +13,34 @@ use std::task::{Context, Poll};
 use tower::Service;
 
 mod domain;
-pub mod dynamic;
+pub mod gw;
 pub(self) mod host;
 
 pub type StateRouter = Router<GwState>;
 
 #[derive(Debug, Clone)]
-pub(crate) struct GwRouter {
+pub(crate) struct DynRouter {
     // routers[0] is the fallback router, and its domain is $FALLBACK_DOMAIN.
-    inner_router: Arc<ArcSwap<InnerDynamicRouter>>,
+    inner_router: Arc<ArcSwap<InnerGwRouter>>,
 }
-unsafe impl Send for GwRouter {}
-unsafe impl Sync for GwRouter {}
-impl Default for GwRouter {
+unsafe impl Send for DynRouter {}
+unsafe impl Sync for DynRouter {}
+impl Default for DynRouter {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl GwRouter {
+impl DynRouter {
     pub(crate) fn new() -> Self {
         Self {
-            inner_router: Arc::new(ArcSwap::from(Arc::new(InnerDynamicRouter::default()))),
+            inner_router: Arc::new(ArcSwap::from(Arc::new(InnerGwRouter::default()))),
         }
     }
     // pub(crate) fn get_inner_routers(&self) -> &InnerDynamicRouter {
     //     unsafe { &*self.inner_router.load().as_raw() }
     // }
-    pub(crate) fn refresh(&self, router: DynamicRouter) {
+    pub(crate) fn refresh(&self, router: GwRouter) {
         self.inner_router.store(Arc::new(
             router.into_inner(|| self.inner_router.load().fallback_router().router.clone()),
         ))
@@ -51,7 +51,7 @@ impl GwRouter {
 const _: () = {
     use axum::serve::IncomingStream;
 
-    impl Service<IncomingStream<'_>> for GwRouter {
+    impl Service<IncomingStream<'_>> for DynRouter {
         type Response = Self;
         type Error = Infallible;
         type Future = std::future::Ready<Result<Self::Response, Self::Error>>;
@@ -66,7 +66,7 @@ const _: () = {
     }
 };
 
-impl<B> Service<Request<B>> for GwRouter
+impl<B> Service<Request<B>> for DynRouter
 where
     B: HttpBody<Data = bytes::Bytes> + Send + 'static,
     B::Error: Into<axum_core::BoxError>,

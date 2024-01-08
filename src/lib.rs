@@ -12,7 +12,7 @@ mod tests {
     use crate::*;
     use axum::routing::get;
     use tokio::time::{sleep, Duration};
-    
+
     #[allow(unused)]
     async fn signal() {
         sleep(Duration::from_secs(10)).await;
@@ -37,7 +37,7 @@ mod tests {
                     .route(
                         "/green",
                         get(|| async {
-                            SERVE.refresh_router(DynamicRouter::from_fallback(GREEN.clone().unwrap()));
+                            SERVE.hot_update(GwRouter::from_fallback(GREEN.clone().unwrap()));
                             println!("Switch to Green!");
                             "Switch to Green!"
                         }),
@@ -56,13 +56,13 @@ mod tests {
                     .route(
                         "/blue",
                         get(|| async {
-                            SERVE.refresh_router(DynamicRouter::from_fallback(BLUE.clone().unwrap()));
+                            SERVE.hot_update(GwRouter::from_fallback(BLUE.clone().unwrap()));
                             println!("Switch to Blue!");
                             "Switch to Blue!"
                         }),
                     ),
             );
-            SERVE.refresh_router(DynamicRouter::from_fallback(BLUE.clone().unwrap()));
+            SERVE.hot_update(GwRouter::from_fallback(BLUE.clone().unwrap()));
         }
 
         // run our app with hyper, listening globally on port 3000
