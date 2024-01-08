@@ -2,9 +2,9 @@
 
 Enterprise-level High Availability Gateway.
 
-[![Crates.io](https://img.shields.io/crates/v/olvn)][olvn]
-[![Documentation](https://shields.io/docsrs/olvn)][olvn-docs]
-[![License](https://img.shields.io/crates/l/olvn)][license]
+[![Crates.io](https://img.shields.io/crates/v/olvn)]([olvn])
+[![Documentation](https://shields.io/docsrs/olvn)]([olvn-docs])
+[![License](https://img.shields.io/crates/l/olvn)]([license])
 
 ## Highlights
 
@@ -14,7 +14,7 @@ Enterprise-level High Availability Gateway.
 
 ## Getting started
 
-
+In development...
 
 
 
