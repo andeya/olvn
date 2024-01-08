@@ -4,7 +4,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/olvn)](https://crates.io/crates/olvn)
 [![Documentation](https://shields.io/docsrs/olvn)](https://docs.rs/olvn)
-[![License](https://img.shields.io/crates/l/olvn)](#license)
+[![License](https://img.shields.io/crates/l/olvn)](https://github.com/andeya/olvn?tab=Apache-2.0-1-ov-file)
 
 
 
