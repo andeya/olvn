@@ -2,32 +2,32 @@ use std::collections::HashMap;
 
 use axum::http::{HeaderName, Method};
 
-use super::{Namespace, Domain};
+use super::{Domain, Namespace};
 
 pub struct IngressRegistry {
-    specifications: HashMap<Namespace, IngressSpecification>,
+    pub specifications: HashMap<Namespace, IngressSpecification>,
 }
 
 pub struct IngressSpecification {
-    namespace: Namespace,
-    domain_groups: HashMap<Domain, IngressDomainGroup>,
+    pub namespace: Namespace,
+    pub domain_groups: HashMap<Domain, IngressDomainGroup>,
 }
 
 pub struct IngressDomainGroup {
-    domain_name: Domain,
-    locations: Vec<IngressLocation>,
+    pub domain_name: Domain,
+    pub locations: Vec<IngressLocation>,
 }
 
 // via: nginx https://blog.51cto.com/blief/1739178
 pub struct IngressLocation {
-    id: u32,
+    pub id: u32,
     /// such as `/a/b/c`
-    path: String,
+    pub path: String,
     /// None means any method
-    method: Option<Method>,
-    proxy_hide_headers: Vec<HeaderName>,
-    proxy_pass_headers: Vec<HeaderName>,
-    upstream_server_id: u32,
+    pub method: Option<Method>,
+    pub proxy_hide_headers: Vec<HeaderName>,
+    pub proxy_pass_headers: Vec<HeaderName>,
+    pub upstream_server_id: u32,
     /// If None, proxy transparently
-    upstream_api_id: Option<u32>,
+    pub upstream_api_id: Option<u32>,
 }

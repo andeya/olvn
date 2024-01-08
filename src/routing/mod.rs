@@ -1,18 +1,22 @@
 pub use self::dynamic::DynamicRouter;
 use self::dynamic::InnerDynamicRouter;
+use crate::state::GwState;
 use arc_swap::{ArcSwap, AsRaw};
 use axum::body::HttpBody;
 use axum::http::Request;
 use axum::routing::future::RouteFuture;
-pub use axum::routing::Router;
+use axum::routing::Router;
 use axum_core::response::Response;
 use std::convert::Infallible;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 use tower::Service;
 
+mod domain;
 pub mod dynamic;
-pub(crate) mod host;
+pub(self) mod host;
+
+pub type StateRouter = Router<GwState>;
 
 #[derive(Debug, Clone)]
 pub(crate) struct GwRouter {
@@ -33,9 +37,9 @@ impl GwRouter {
             inner_router: Arc::new(ArcSwap::from(Arc::new(InnerDynamicRouter::default()))),
         }
     }
-    pub(crate) fn get_inner_routers(&self) -> &InnerDynamicRouter {
-        unsafe { &*self.inner_router.load().as_raw() }
-    }
+    // pub(crate) fn get_inner_routers(&self) -> &InnerDynamicRouter {
+    //     unsafe { &*self.inner_router.load().as_raw() }
+    // }
     pub(crate) fn refresh(&self, router: DynamicRouter) {
         self.inner_router.store(Arc::new(
             router.into_inner(|| self.inner_router.load().fallback_router().router.clone()),

@@ -1,27 +1,32 @@
-mod ars;
+pub mod ars;
 mod routing;
 mod serve;
+pub mod state;
+
 pub use crate::routing::*;
 pub use crate::serve::*;
+pub use tokio::test;
 
 #[cfg(test)]
 mod tests {
     use crate::*;
-    use axum::{routing::get, Router};
+    use axum::routing::get;
     use tokio::time::{sleep, Duration};
+    
+    #[allow(unused)]
     async fn signal() {
         sleep(Duration::from_secs(10)).await;
         println!("Signal!");
     }
 
-    #[tokio::test]
+    #[crate::test]
     async fn it_work() {
-        static mut BLUE: Option<Router> = None;
-        static mut GREEN: Option<Router> = None;
+        static mut BLUE: Option<StateRouter> = None;
+        static mut GREEN: Option<StateRouter> = None;
         static SERVE: Serve = Serve::new();
         unsafe {
             BLUE = Some(
-                Router::new()
+                StateRouter::new()
                     .route(
                         "/",
                         get(|| async {
@@ -40,7 +45,7 @@ mod tests {
             );
 
             GREEN = Some(
-                Router::new()
+                StateRouter::new()
                     .route(
                         "/",
                         get(|| async {
