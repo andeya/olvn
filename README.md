@@ -2,9 +2,9 @@
 
 `olvn` is an Enterprise-level High Availability Gateway.
 
-[![Crates.io](https://img.shields.io/crates/v/olvn)][olvn]
-[![Documentation](https://shields.io/docsrs/olvn)][olvn-docs]
-[![License](https://img.shields.io/crates/l/olvn)][license]
+[![Crates.io](https://img.shields.io/crates/v/olvn)](https://crates.io/crates/olvn)
+[![Documentation](https://shields.io/docsrs/olvn)](https://docs.rs/olvn)
+[![License](https://img.shields.io/crates/l/olvn)](#license)
 
 
 
