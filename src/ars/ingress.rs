@@ -1,30 +1,54 @@
 use std::collections::HashMap;
 
-use axum::http::{HeaderName, Method};
-
 use super::{Domain, Namespace};
 
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct HeaderName(String);
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum Method {
+    Any,
+    Options,
+    Get,
+    Post,
+    Put,
+    Delete,
+    Head,
+    Trace,
+    Connect,
+    Patch,
+}
+
+impl Default for Method {
+    fn default() -> Self {
+        Method::Any
+    }
+}
+
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct IngressRegistry {
     pub specifications: HashMap<Namespace, IngressSpecification>,
 }
 
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct IngressSpecification {
     pub namespace: Namespace,
     pub domain_groups: HashMap<Domain, IngressDomainGroup>,
 }
 
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct IngressDomainGroup {
     pub domain_name: Domain,
     pub locations: Vec<IngressLocation>,
 }
 
 // via: nginx https://blog.51cto.com/blief/1739178
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct IngressLocation {
     pub id: u32,
     /// such as `/a/b/c`
     pub path: String,
-    /// None means any method
-    pub method: Option<Method>,
+    pub method: Method,
     pub proxy_hide_headers: Vec<HeaderName>,
     pub proxy_pass_headers: Vec<HeaderName>,
     pub upstream_server_id: u32,
