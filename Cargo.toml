@@ -28,6 +28,7 @@ required-features = [] # Features required to build this target (N/A for lib).
 [dependencies]
 axum = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 snafu = { workspace = true }
 async-trait = { workspace = true }
 tokio = { workspace = true }
@@ -57,6 +58,7 @@ readme = "./README.md"
 [workspace.dependencies]
 axum = "0.7.3"
 serde = { version = "1.0.189", features = ["derive"] }
+serde_json = "1.0.111"
 snafu = "0.8.0"
 async-trait = "0.1.74"
 tokio = { version = "1.35.1", features = ["full"] }

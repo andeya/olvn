@@ -31,35 +31,110 @@ pub struct MethodSpec {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(untagged)]
+#[serde(rename_all = "snake_case")]
 pub enum EntitySchema {
-    Bool(bool, Option<HttpParamType>),
-    I8(i8, Option<HttpParamType>),
-    I16(i16, Option<HttpParamType>),
-    I32(i32, Option<HttpParamType>),
-    I64(i64, Option<HttpParamType>),
-    I128(i128, Option<HttpParamType>),
-    U8(u8, Option<HttpParamType>),
-    U16(u16, Option<HttpParamType>),
-    U32(u32, Option<HttpParamType>),
-    U64(u64, Option<HttpParamType>),
-    U128(u128, Option<HttpParamType>),
-    F32(f32, Option<HttpParamType>),
-    F64(f64, Option<HttpParamType>),
-    String(String, Option<HttpParamType>),
-    Array(Vec<EntitySchema>, Option<HttpParamType>),
-    Object(std::collections::HashMap<String, EntitySchema>, Option<HttpParamType>),
+    Bool {
+        http_param: Option<HttpParam>,
+    },
+    I8 {
+        http_param: Option<HttpParam>,
+    },
+    I16 {
+        http_param: Option<HttpParam>,
+    },
+    I32 {
+        http_param: Option<HttpParam>,
+    },
+    I64 {
+        http_param: Option<HttpParam>,
+    },
+    I128 {
+        http_param: Option<HttpParam>,
+    },
+    U8 {
+        http_param: Option<HttpParam>,
+    },
+    U16 {
+        http_param: Option<HttpParam>,
+    },
+    U32 {
+        http_param: Option<HttpParam>,
+    },
+    U64 {
+        http_param: Option<HttpParam>,
+    },
+    U128 {
+        http_param: Option<HttpParam>,
+    },
+    F32 {
+        http_param: Option<HttpParam>,
+    },
+    F64 {
+        http_param: Option<HttpParam>,
+    },
+    String {
+        http_param: Option<HttpParam>,
+    },
+    Array {
+        elem_type: Box<EntitySchema>,
+        http_param: Option<HttpParamKind>,
+    },
+    Object(Vec<ObjectSchema>),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub enum HttpParamType {
+pub struct ObjectSchema {
+    pub key: String,
+    pub value_type: Box<EntitySchema>,
+    pub http_param: Option<HttpParamKind>,
+}
+
+#[test]
+fn entity_schema() {
+    let schema = EntitySchema::Object(vec![ObjectSchema {
+        key: "a".to_string(),
+        value_type: Box::new(EntitySchema::String { http_param: None }),
+        http_param: None,
+    }]);
+    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct HttpParam {
+    pub key: String,
+    pub kind: HttpParamKind,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub enum HttpParamKind {
     Body,
 }
 
-impl Default for HttpParamType {
+impl Default for HttpParamKind {
     fn default() -> Self {
-        HttpParamType::Body
+        Self::Body
     }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(untagged)]
+pub enum Entity {
+    Bool(bool),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+    I128(i128),
+    U8(u8),
+    U16(u16),
+    U32(u32),
+    U64(u64),
+    U128(u128),
+    F32(f32),
+    F64(f64),
+    String(String),
+    Array(Vec<EntitySchema>),
+    Object(std::collections::HashMap<String, EntitySchema>),
 }
 
 // such as `http`, `grpc`, `websocket`, `domain-direct`, `custom`
