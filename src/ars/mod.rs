@@ -3,11 +3,8 @@
 //! API Runtime Specification (ARS), all necessary data
 //! required for normal request traffic in the gateway data plane.
 
-pub mod codec;
-pub mod discovery;
 pub mod egress;
 pub mod ingress;
-pub mod protocol;
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ARS {
@@ -45,4 +42,13 @@ impl Domain {
     pub const fn new() -> Self {
         Self(String::new())
     }
+}
+use axum::body::Body;
+use axum::http::{Request, Response};
+
+use self::ingress::InnerIngressLocation;
+
+#[allow(unused)]
+fn reverse_proxy(_location: &InnerIngressLocation, _req: Request<Body>) -> Response<Body> {
+    todo!()
 }

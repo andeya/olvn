@@ -1,6 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-use super::{Domain, Namespace};
+use super::{
+    egress::{MethodSpec, ServiceSpec},
+    Domain, Namespace,
+};
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct HeaderName(String);
@@ -54,4 +57,17 @@ pub struct IngressLocation {
     pub upstream_server_id: u32,
     /// If None, proxy transparently
     pub upstream_api_id: Option<u32>,
+}
+
+#[derive(Debug)]
+pub struct InnerIngressLocation {
+    pub id: u32,
+    /// such as `/a/b/c`
+    pub path: String,
+    pub method: Method,
+    pub proxy_hide_headers: Vec<HeaderName>,
+    pub proxy_pass_headers: Vec<HeaderName>,
+    pub upstream_server: Arc<ServiceSpec>,
+    /// If None, proxy transparently
+    pub upstream_api_id: Arc<Option<MethodSpec>>,
 }
