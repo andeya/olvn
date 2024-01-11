@@ -100,6 +100,8 @@ pub enum HttpParam {
     Cookie(Vec<String>),
     Query(Vec<String>),
     Path(Vec<String>),
+    Plugin(Vec<String>),
+    Env(Vec<String>),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
