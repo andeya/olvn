@@ -3,32 +3,66 @@
 //! API Runtime Specification (ARS), all necessary data
 //! required for normal request traffic in the gateway data plane.
 
-pub mod egress;
-pub mod ingress;
+mod egress;
+mod ingress;
+pub use egress::*;
+pub use ingress::*;
+use std::ops::Deref;
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ARS {
-    pub ingress: ingress::IngressRegistry,
-    pub egress: egress::EgressRegistry,
+pub struct Ars {
+    pub namespace: Namespace,
+    pub ingress: ingress::IngressSpec,
+    pub egress: egress::EgressSpec,
 }
 
-impl ARS {
+impl Ars {
     pub fn new() -> Self {
-        Self {
-            ingress: ingress::IngressRegistry::default(),
-            egress: egress::EgressRegistry::default(),
-        }
+        Self::default()
     }
 }
 
 #[derive(Default, Debug, Clone, Hash, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Namespace(String);
 
-#[derive(Debug, Clone, Hash, serde::Serialize, serde::Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+impl Deref for Namespace {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<String> for Namespace {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&str> for Namespace {
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+#[derive(Default, Debug, Clone, Hash, serde::Serialize, serde::Deserialize, Ord, PartialOrd, Eq, PartialEq)]
 pub struct Domain(pub String);
-impl Default for Domain {
-    fn default() -> Self {
-        Self(Default::default())
+
+impl From<String> for Domain {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&str> for Domain {
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+impl Deref for Domain {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -42,13 +76,4 @@ impl Domain {
     pub const fn new() -> Self {
         Self(String::new())
     }
-}
-use axum::body::Body;
-use axum::http::{Request, Response};
-
-use self::ingress::InnerIngressLocation;
-
-#[allow(unused)]
-fn reverse_proxy(_location: &InnerIngressLocation, _req: Request<Body>) -> Response<Body> {
-    todo!()
 }

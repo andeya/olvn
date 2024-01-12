@@ -1,4 +1,8 @@
-use crate::routing::{DynRouter, GwRouter};
+use crate::{
+    ars::Ars,
+    error::GwError,
+    routing::{DynRouter, GwRouter},
+};
 use std::{future::Future, sync::Mutex};
 pub use tokio::net::TcpListener;
 
@@ -21,6 +25,10 @@ impl Serve {
     pub fn hot_update(&self, router: GwRouter) -> &Self {
         self.get_or_init_router().refresh(router);
         self
+    }
+    pub fn hot_update_ars(&self, ars: Ars) -> Result<(), GwError> {
+        self.get_or_init_router().refresh(GwRouter::from_ars(ars)?);
+        Ok(())
     }
     pub async fn serve(&self, listener: TcpListener) -> Result<(), std::io::Error> {
         axum::serve(listener, self.get_or_init_router()).await

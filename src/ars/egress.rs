@@ -1,16 +1,8 @@
 use std::collections::HashMap;
 
-use super::Namespace;
-
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct EgressRegistry {
-    pub specifications: HashMap<Namespace, EgressSpec>,
-}
-
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct EgressSpec {
-    pub namespace: Namespace,
-    pub service_spec: HashMap<u32, ServiceSpec>,
+    pub services: HashMap<u32, ServiceSpec>,
 }
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -19,7 +11,7 @@ pub struct ServiceSpec {
     pub service_type: ServiceType,
     pub uniform_service_name: String,
     pub service_discover_identifier: String,
-    pub handler_spec: HashMap<u32, MethodSpec>,
+    pub methods: HashMap<u32, MethodSpec>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -95,13 +87,13 @@ pub struct ObjectSchema {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HttpParam {
-    Body(Vec<String>),
-    Header(Vec<String>),
-    Cookie(Vec<String>),
-    Query(Vec<String>),
-    Path(Vec<String>),
-    Plugin(Vec<String>),
-    Env(Vec<String>),
+    Body(Option<String>),
+    Header(Option<String>),
+    Cookie(Option<String>),
+    Query(Option<String>),
+    Path(Option<String>),
+    Plugin(Option<String>),
+    Env(Option<String>),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -143,7 +135,7 @@ pub enum Entity {
 
 // such as `http`, `grpc`, `websocket`, `domain-direct`, `custom`
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ServiceType(u8);
+pub struct ServiceType(pub u8);
 
 #[test]
 fn entity_schema() {
@@ -151,11 +143,11 @@ fn entity_schema() {
         fields: vec![ObjectSchema {
             key: "a".to_string(),
             value_type: Box::new(EntitySchema::String {
-                http_param: Some(HttpParam::Body(vec!["a".to_owned()])),
+                http_param: Some(HttpParam::Body(Some("a".to_owned()))),
             }),
-            http_param: None,
+            http_param: Some(HttpParam::Body(Some("X-Olvn-Identifier".to_owned()))),
         }],
-        http_param: Some(HttpParam::Header(vec!["X-Olvn-Identifier".to_owned()])),
+        http_param: Some(HttpParam::Header(Some("X-Olvn-Identifier".to_owned()))),
     };
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 }

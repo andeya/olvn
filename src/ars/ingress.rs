@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use super::{
     egress::{MethodSpec, ServiceSpec},
-    Domain, Namespace,
+    Domain,
 };
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -18,7 +18,6 @@ pub enum Method {
     Delete,
     Head,
     Trace,
-    Connect,
     Patch,
 }
 
@@ -29,13 +28,7 @@ impl Default for Method {
 }
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct IngressRegistry {
-    pub specifications: HashMap<Namespace, IngressSpecification>,
-}
-
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct IngressSpecification {
-    pub namespace: Namespace,
+pub struct IngressSpec {
     pub domain_groups: HashMap<Domain, IngressDomainGroup>,
 }
 

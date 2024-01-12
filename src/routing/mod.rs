@@ -11,11 +11,9 @@ use std::convert::Infallible;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 use tower::Service;
-
+mod ars;
 mod domain;
 pub mod gw;
-pub(self) mod host;
-
 pub type StateRouter = Router<GwState>;
 
 #[derive(Debug, Clone)]
@@ -37,6 +35,7 @@ impl DynRouter {
             inner_router: Arc::new(ArcSwap::from(Arc::new(InnerGwRouter::default()))),
         }
     }
+
     // pub(crate) fn get_inner_routers(&self) -> &InnerDynamicRouter {
     //     unsafe { &*self.inner_router.load().as_raw() }
     // }
