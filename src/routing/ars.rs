@@ -1,13 +1,15 @@
 use axum::http::Request;
-use std::task::{Context, Poll};
-use tower::Service;
+use axum::middleware;
+use axum::{middleware::Next, response::Response};
+use tower::ServiceBuilder;
 
 use crate::error::*;
+use crate::state::Context;
 use crate::{
     ars::{Ars, Method},
     error::GwError,
     routing::GwRouter,
-    routing::StateRouter,
+    routing::Router,
 };
 use std::sync::Arc;
 
@@ -33,7 +35,7 @@ impl GwRouter {
         println!("namespace: {}", &*ars.namespace);
         for (_, ingress_domain_group) in ars.ingress.domain_groups {
             println!("domain_name: {}", &*ingress_domain_group.domain_name);
-            let mut router = StateRouter::new();
+            let mut router = Router::new();
             for location in ingress_domain_group.locations {
                 let service = ars
                     .egress
@@ -44,57 +46,31 @@ impl GwRouter {
                     })
                     .context(ArsSnafu)?;
                 let service = Arc::new(service.clone());
-                router = router
-                    .route(
-                        location.path.as_str(),
-                        top_level_handler_fn!(location.method, || async move {
-                            // TODO:
-                            format!("{:?}", service)
-                        }),
-                    )
-                    .route_layer(PluginRouteLayer);
+                router = router.route(
+                    location.path.as_str(),
+                    top_level_handler_fn!(location.method, || async move {
+                        // TODO:
+                        format!("{:?}", service)
+                    }),
+                );
             }
+            router = router.layer(ServiceBuilder::new().layer(middleware::from_fn(plugin)));
             gw_router = gw_router.route(ingress_domain_group.domain_name, router);
         }
         Ok(gw_router)
     }
 }
 
-#[derive(Debug, Clone)]
-struct PluginRouteLayer;
-
-#[derive(Debug, Clone)]
-struct PluginRouteService<S> {
-    inner: S,
-}
-
-impl<S> tower::Layer<S> for PluginRouteLayer {
-    type Service = PluginRouteService<S>;
-
-    // 初始化服务
-    fn layer(&self, inner: S) -> Self::Service {
-        PluginRouteService { inner }
-    }
-}
-
-impl<ResBody, S> Service<Request<ResBody>> for PluginRouteService<S>
-where
-    S: Service<Request<ResBody>>,
-{
-    type Response = S::Response;
-    type Error = S::Error;
-    type Future = S::Future;
-
-    #[inline]
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        self.inner.poll_ready(cx)
-    }
-
-    #[allow(unused_mut)]
-    fn call(&mut self, mut req: Request<ResBody>) -> Self::Future {
-        println!("[PLUGIN-PRE] Handling a request to {}", req.uri());
-        let resp = self.inner.call(req);
-        println!("[PLUGIN-POST] Returning a response");
-        resp
-    }
+async fn plugin(request: Request<axum_core::body::Body>, next: Next) -> Response {
+    let mut state = request.extensions().get::<Context>().unwrap().clone();
+    println!(
+        "[PLUGIN-PRE] Handling a request to {}{}, state={:?}",
+        state.host,
+        request.uri(),
+        state
+    );
+    state.host = "test".to_owned();
+    let response = next.run(request).await;
+    println!("[PLUGIN-POST] Returning a response, state={:?}", state);
+    response
 }

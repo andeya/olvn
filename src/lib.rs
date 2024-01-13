@@ -22,12 +22,12 @@ mod tests {
 
     #[crate::test]
     async fn it_work() {
-        static mut BLUE: Option<StateRouter> = None;
-        static mut GREEN: Option<StateRouter> = None;
+        static mut BLUE: Option<Router> = None;
+        static mut GREEN: Option<Router> = None;
         static SERVE: Serve = Serve::new();
         unsafe {
             BLUE = Some(
-                StateRouter::new()
+                Router::new()
                     .route(
                         "/",
                         get(|| async {
@@ -46,7 +46,7 @@ mod tests {
             );
 
             GREEN = Some(
-                StateRouter::new()
+                Router::new()
                     .route(
                         "/",
                         get(|| async {

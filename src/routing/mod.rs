@@ -1,11 +1,10 @@
 pub use self::gw::GwRouter;
 use self::gw::InnerGwRouter;
-use crate::state::GwState;
 use arc_swap::{ArcSwap, AsRaw};
 use axum::body::HttpBody;
 use axum::http::Request;
 use axum::routing::future::RouteFuture;
-use axum::routing::Router;
+pub use axum::routing::Router;
 use axum_core::response::Response;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -14,7 +13,6 @@ use tower::Service;
 mod ars;
 mod domain;
 pub mod gw;
-pub type StateRouter = Router<GwState>;
 
 #[derive(Debug, Clone)]
 pub(crate) struct DynRouter {

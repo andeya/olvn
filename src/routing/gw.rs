@@ -1,6 +1,6 @@
+use super::domain::{DomainRouter, FALLBACK_NO_DOMAIN};
 use crate::ars::Domain;
-use crate::state::GwState;
-use crate::StateRouter;
+use crate::state::{Context, GwState};
 use axum::body::HttpBody;
 use axum::http::Request;
 use axum::routing::future::RouteFuture;
@@ -10,45 +10,42 @@ use std::collections::BTreeMap;
 use std::convert::Infallible;
 use tower::Service;
 
-use super::domain::{DomainRouter, FALLBACK_NO_DOMAIN};
-
 #[derive(Debug, Clone)]
-pub struct GwRouter(BTreeMap<Domain, StateRouter>);
+pub struct GwRouter(BTreeMap<Domain, Router>);
 
 impl GwRouter {
     pub fn new() -> Self {
         Self(BTreeMap::new())
     }
     #[inline]
-    pub fn from_fallback(fallback: StateRouter) -> Self {
+    pub fn from_fallback(fallback: Router) -> Self {
         Self::new().fallback(Some(fallback))
     }
     #[inline]
-    pub fn fallback(mut self, fallback: Option<StateRouter>) -> Self {
+    pub fn fallback(mut self, fallback: Option<Router>) -> Self {
         let _ = self
             .0
             .insert(FALLBACK_NO_DOMAIN, fallback.unwrap_or_else(not_found_router));
         self
     }
-    pub fn route(mut self, domain: Domain, router: StateRouter) -> Self {
+    pub fn route(mut self, domain: Domain, router: Router) -> Self {
         let _ = self.0.insert(domain, router);
         self
     }
-    pub fn get(&self, domain: &Domain) -> Option<&StateRouter> {
+    pub fn get(&self, domain: &Domain) -> Option<&Router> {
         self.0.get(domain)
     }
-    pub fn get_mut(&mut self, domain: &Domain) -> Option<&mut StateRouter> {
+    pub fn get_mut(&mut self, domain: &Domain) -> Option<&mut Router> {
         self.0.get_mut(domain)
     }
     pub(crate) fn into_inner<F: Fn() -> Router>(mut self, fallback: F) -> InnerGwRouter {
-        let state = GwState::default();
         let mut inner = InnerGwRouter::new(Some(if let Some(fallback) = self.0.remove(&FALLBACK_NO_DOMAIN) {
-            fallback.with_state(state.clone())
+            fallback
         } else {
             fallback()
         }));
         for ele in self.0 {
-            inner.0.push(DomainRouter::new(ele.0, ele.1.with_state(state.clone())));
+            inner.0.push(DomainRouter::new(ele.0, ele.1));
         }
         inner
     }
@@ -82,18 +79,23 @@ impl InnerGwRouter {
 
 impl InnerGwRouter {
     #[inline]
-    pub(crate) fn call<B>(&mut self, req: Request<B>) -> RouteFuture<Infallible>
+    pub(crate) fn call<B>(&mut self, mut req: Request<B>) -> RouteFuture<Infallible>
     where
         B: HttpBody<Data = bytes::Bytes> + Send + 'static,
         B::Error: Into<axum_core::BoxError>,
     {
-        if let Some(hostname) = host::get_host_from_request(&req) {
+        let state = GwState {
+            host: host::get_host_from_request(&req).unwrap_or_default(),
+        };
+        if !state.host.is_empty() {
             for router in &mut self.0[1..] {
-                if router.domain == hostname {
+                if router.domain == state.host {
+                    req.extensions_mut().insert(Context::from(state));
                     return router.router.call(req);
                 }
             }
         }
+        req.extensions_mut().insert(Context::from(state));
         return self.fallback_router_mut().router.call(req);
     }
 }
@@ -104,7 +106,7 @@ pub(crate) fn not_found_router<S: Clone + Send + Sync + 'static>() -> Router<S> 
             StatusCode::NOT_FOUND,
             format!(
                 "404. The requested URL {}{} was not found on this server.",
-                host::get_host_from_request(&req).unwrap_or_default(),
+                req.extensions().get::<Context>().unwrap().host,
                 req.uri().path(),
             ),
         );
