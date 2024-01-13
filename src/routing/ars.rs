@@ -1,10 +1,5 @@
-use axum::http::Request;
-use axum::middleware;
-use axum::{middleware::Next, response::Response};
-use tower::ServiceBuilder;
-
 use crate::error::*;
-use crate::state::Context;
+use crate::plugin::layer;
 use crate::{
     ars::{Ars, Method},
     error::GwError,
@@ -50,27 +45,14 @@ impl GwRouter {
                     location.path.as_str(),
                     top_level_handler_fn!(location.method, || async move {
                         // TODO:
-                        format!("{:?}", service)
+                        let s = format!("{:?}", service);
+                        println!("response: {:?}", s);
+                        s
                     }),
                 );
             }
-            router = router.layer(ServiceBuilder::new().layer(middleware::from_fn(plugin)));
-            gw_router = gw_router.route(ingress_domain_group.domain_name, router);
+            gw_router = gw_router.route(ingress_domain_group.domain_name, layer(router));
         }
         Ok(gw_router)
     }
-}
-
-async fn plugin(request: Request<axum_core::body::Body>, next: Next) -> Response {
-    let mut state = request.extensions().get::<Context>().unwrap().clone();
-    println!(
-        "[PLUGIN-PRE] Handling a request to {}{}, state={:?}",
-        state.host,
-        request.uri(),
-        state
-    );
-    state.host = "test".to_owned();
-    let response = next.run(request).await;
-    println!("[PLUGIN-POST] Returning a response, state={:?}", state);
-    response
 }

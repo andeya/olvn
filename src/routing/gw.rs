@@ -1,6 +1,7 @@
 use super::domain::{DomainRouter, FALLBACK_NO_DOMAIN};
 use crate::ars::Domain;
-use crate::state::{Context, GwState};
+use crate::plugin::layer;
+use crate::state::{GwContext, GwState};
 use axum::body::HttpBody;
 use axum::http::Request;
 use axum::routing::future::RouteFuture;
@@ -8,8 +9,8 @@ use axum::Router;
 use http::StatusCode;
 use std::collections::BTreeMap;
 use std::convert::Infallible;
+use tokio::time::Instant;
 use tower::Service;
-
 #[derive(Debug, Clone)]
 pub struct GwRouter(BTreeMap<Domain, Router>);
 
@@ -86,31 +87,35 @@ impl InnerGwRouter {
     {
         let state = GwState {
             host: host::get_host_from_request(&req).unwrap_or_default(),
+            uri: req.uri().to_string(),
+            start_time: Instant::now(),
         };
         if !state.host.is_empty() {
             for router in &mut self.0[1..] {
                 if router.domain == state.host {
-                    req.extensions_mut().insert(Context::from(state));
+                    req.extensions_mut().insert(GwContext::from(state));
                     return router.router.call(req);
                 }
             }
         }
-        req.extensions_mut().insert(Context::from(state));
+        req.extensions_mut().insert(GwContext::from(state));
         return self.fallback_router_mut().router.call(req);
     }
 }
 
 pub(crate) fn not_found_router<S: Clone + Send + Sync + 'static>() -> Router<S> {
-    Router::new().fallback(|req: Request<axum_core::body::Body>| async move {
-        return (
-            StatusCode::NOT_FOUND,
-            format!(
-                "404. The requested URL {}{} was not found on this server.",
-                req.extensions().get::<Context>().unwrap().host,
-                req.uri().path(),
-            ),
-        );
-    })
+    layer(
+        Router::new().fallback(|req: Request<axum_core::body::Body>| async move {
+            return (
+                StatusCode::NOT_FOUND,
+                format!(
+                    "404. The requested URL {}{} was not found on this server.",
+                    req.extensions().get::<GwContext>().unwrap().host,
+                    req.uri().path(),
+                ),
+            );
+        }),
+    )
 }
 
 mod host {

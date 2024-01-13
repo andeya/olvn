@@ -7,6 +7,7 @@ pub mod state;
 pub use crate::routing::*;
 pub use crate::serve::*;
 pub use tokio::{main, test};
+pub mod plugin;
 
 #[cfg(test)]
 mod tests {
