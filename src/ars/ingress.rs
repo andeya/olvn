@@ -1,13 +1,8 @@
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use fake::Dummy;
 
-use crate::error::GwError;
-
-use super::{
-    egress::{EgressSpec, MethodSpec, ServiceSpec},
-    Domain,
-};
+use super::Domain;
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct HeaderName(String);
