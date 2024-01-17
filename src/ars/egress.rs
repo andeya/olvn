@@ -1,28 +1,32 @@
+use fake::Dummy;
+use http::uri::{InvalidUri, Uri};
 use std::collections::HashMap;
+use std::ops::Deref;
 
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct EgressSpec {
     pub services: HashMap<u32, ServiceSpec>,
 }
 
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct ServiceSpec {
     pub id: u32,
-    pub service_type: ServiceType,
-    pub uniform_service_name: String,
-    pub service_discover_identifier: String,
+    pub service_name: String,
+    pub service_identifier: ServiceIdentifier,
     pub methods: HashMap<u32, MethodSpec>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct MethodSpec {
     pub id: u32,
     pub method_name: String,
     pub inbound_spec: EntitySchema,
+    pub inbound_codec: Codec,
     pub outbound_spec: EntitySchema,
+    pub outbound_codec: Codec,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 #[serde(rename_all = "snake_case")]
 pub enum EntitySchema {
     Bool {
@@ -77,14 +81,14 @@ pub enum EntitySchema {
     },
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct ObjectSchema {
     pub key: String,
     pub value_type: Box<EntitySchema>,
     pub http_param: Option<HttpParam>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 #[serde(rename_all = "snake_case")]
 pub enum HttpParam {
     Body(Option<String>),
@@ -94,22 +98,6 @@ pub enum HttpParam {
     Path(Option<String>),
     Plugin(Option<String>),
     Env(Option<String>),
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ServiceDiscoverType {
-    Http,
-    Grpc,
-    Websocket,
-    DomainDirect,
-    Custom,
-}
-
-impl Default for ServiceDiscoverType {
-    fn default() -> Self {
-        Self::Http
-    }
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -133,21 +121,35 @@ pub enum Entity {
     Object(std::collections::HashMap<String, EntitySchema>),
 }
 
-// such as `http`, `grpc`, `websocket`, `domain-direct`, `custom`
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ServiceType(pub u8);
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
+pub struct Codec(u8);
 
-#[test]
-fn entity_schema() {
-    let schema = EntitySchema::Object {
-        fields: vec![ObjectSchema {
-            key: "a".to_string(),
-            value_type: Box::new(EntitySchema::String {
-                http_param: Some(HttpParam::Body(Some("a".to_owned()))),
-            }),
-            http_param: Some(HttpParam::Body(Some("X-Olvn-Identifier".to_owned()))),
-        }],
-        http_param: Some(HttpParam::Header(Some("X-Olvn-Identifier".to_owned()))),
-    };
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
+pub struct ServiceIdentifier(String);
+impl ServiceIdentifier {
+    pub fn new() -> Self {
+        ServiceIdentifier(String::new())
+    }
+    pub fn parse(&self) -> Result<Uri, InvalidUri> {
+        self.0.parse()
+    }
+}
+
+impl From<String> for ServiceIdentifier {
+    fn from(s: String) -> Self {
+        ServiceIdentifier(s)
+    }
+}
+
+impl From<&str> for ServiceIdentifier {
+    fn from(s: &str) -> Self {
+        ServiceIdentifier(s.to_owned())
+    }
+}
+
+impl Deref for ServiceIdentifier {
+    type Target = String;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }

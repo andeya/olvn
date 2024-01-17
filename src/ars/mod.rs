@@ -6,10 +6,13 @@
 mod egress;
 mod ingress;
 pub use egress::*;
+use fake::Dummy;
 pub use ingress::*;
 use std::ops::Deref;
+mod expand;
+pub use expand::{ArsExpand, IngressLocationSpec};
 
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct Ars {
     pub namespace: Namespace,
     pub ingress: ingress::IngressSpec,
@@ -22,7 +25,7 @@ impl Ars {
     }
 }
 
-#[derive(Default, Debug, Clone, Hash, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Default, Debug, Clone, Hash, Eq, PartialEq, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct Namespace(String);
 
 impl Deref for Namespace {
@@ -44,7 +47,7 @@ impl From<&str> for Namespace {
     }
 }
 
-#[derive(Default, Debug, Clone, Hash, serde::Serialize, serde::Deserialize, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Default, Debug, Clone, Hash, serde::Serialize, serde::Deserialize, Ord, PartialOrd, Eq, PartialEq, Dummy)]
 pub struct Domain(pub String);
 
 impl From<String> for Domain {
@@ -75,5 +78,31 @@ impl PartialEq<String> for Domain {
 impl Domain {
     pub const fn new() -> Self {
         Self(String::new())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ars::*;
+    use fake::{Fake, Faker};
+    #[test]
+    fn entity_schema() {
+        let schema = EntitySchema::Object {
+            fields: vec![ObjectSchema {
+                key: "a".to_string(),
+                value_type: Box::new(EntitySchema::String {
+                    http_param: Some(HttpParam::Body(Some("a".to_owned()))),
+                }),
+                http_param: Some(HttpParam::Body(Some("X-Olvn-Identifier".to_owned()))),
+            }],
+            http_param: Some(HttpParam::Header(Some("X-Olvn-Identifier".to_owned()))),
+        };
+        println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+    }
+
+    #[test]
+    fn entity_ars() {
+        let ars: Ars = Faker.fake();
+        println!("{}", serde_json::to_string_pretty(&ars).unwrap());
     }
 }

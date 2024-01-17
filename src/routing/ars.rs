@@ -35,9 +35,9 @@ impl GwRouter {
                 let service = ars
                     .egress
                     .services
-                    .get(&location.upstream_server_id)
+                    .get(&location.upstream_service_id)
                     .context(NoUpstreamSnafu {
-                        id: location.upstream_server_id,
+                        id: location.upstream_service_id,
                     })
                     .context(ArsSnafu)?;
                 let service = Arc::new(service.clone());

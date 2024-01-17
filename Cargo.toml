@@ -39,6 +39,7 @@ arc-swap = { workspace = true }
 lazy_static = { workspace = true }
 tower = { workspace = true }
 http = { workspace = true }
+fake = { workspace = true }
 
 [workspace]
 resolver = "2"
@@ -70,3 +71,4 @@ axum-core = "0.4.2"
 arc-swap = "1.6.0"
 lazy_static = "1"
 http = "1"
+fake = { version = "2.9.2", features = ["derive"] }

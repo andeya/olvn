@@ -12,9 +12,8 @@ async fn main() {
         1,
         ServiceSpec {
             id: 1,
-            service_type: ServiceType(0),
-            uniform_service_name: "p.s.m".to_owned(),
-            service_discover_identifier: "p.s.m".to_owned(),
+            service_name: "p.s.m".to_owned(),
+            service_identifier: "p.s.m".into(),
             methods: HashMap::new(),
         },
     );
@@ -28,8 +27,8 @@ async fn main() {
                 method: Method::Any,
                 proxy_hide_headers: vec![],
                 proxy_pass_headers: vec![],
-                upstream_server_id: 1,
-                upstream_api_id: None,
+                upstream_service_id: 1,
+                upstream_method_id: None,
             }],
         },
     );
