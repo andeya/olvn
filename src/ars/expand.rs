@@ -20,7 +20,7 @@ pub struct IngressLocationSpec {
     pub proxy_pass_headers: Vec<HeaderName>,
     pub upstream_service: Arc<ServiceSpec>,
     /// If None, proxy transparently
-    pub upstream_method: Option<MethodSpec>,
+    pub upstream_method: Option<Arc<MethodSpec>>,
 }
 
 #[derive(Debug)]
@@ -35,12 +35,7 @@ impl TryFrom<Ars> for ArsExpand {
     fn try_from(value: Ars) -> Result<Self, Self::Error> {
         let namespace = value.namespace;
         let mut domain_groups = HashMap::new();
-        let services = value
-            .egress
-            .services
-            .into_iter()
-            .map(|(id, service_spec)| (id, Arc::new(service_spec)))
-            .collect::<HashMap<u32, Arc<ServiceSpec>>>();
+        let services = value.egress.services;
 
         for (domain, domain_group) in value.ingress.domain_groups {
             let mut locations = Vec::new();

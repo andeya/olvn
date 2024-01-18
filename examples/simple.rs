@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use olvn::ars::*;
 use olvn::*;
@@ -10,12 +11,12 @@ async fn main() {
     ars.namespace = "default".into();
     ars.egress.services.insert(
         1,
-        ServiceSpec {
+        Arc::new(ServiceSpec {
             id: 1,
             service_name: "p.s.m".to_owned(),
             service_identifier: "p.s.m".into(),
             methods: HashMap::new(),
-        },
+        }),
     );
     ars.ingress.domain_groups.insert(
         "www.github.com".into(),

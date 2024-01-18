@@ -2,10 +2,11 @@ use fake::Dummy;
 use http::uri::{InvalidUri, Uri};
 use std::collections::HashMap;
 use std::ops::Deref;
+use std::sync::Arc;
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct EgressSpec {
-    pub services: HashMap<u32, ServiceSpec>,
+    pub services: HashMap<u32, Arc<ServiceSpec>>,
 }
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
@@ -13,7 +14,7 @@ pub struct ServiceSpec {
     pub id: u32,
     pub service_name: String,
     pub service_identifier: ServiceIdentifier,
-    pub methods: HashMap<u32, MethodSpec>,
+    pub methods: HashMap<u32, Arc<MethodSpec>>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
