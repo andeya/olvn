@@ -20,7 +20,7 @@ pub struct IngressLocationSpec {
     pub proxy_pass_headers: Vec<HeaderName>,
     pub upstream_service: Arc<ServiceSpec>,
     /// If None, proxy transparently
-    pub upstream_method: Arc<Option<MethodSpec>>,
+    pub upstream_method: Option<MethodSpec>,
 }
 
 #[derive(Debug)]
@@ -35,7 +35,13 @@ impl TryFrom<Ars> for ArsExpand {
     fn try_from(value: Ars) -> Result<Self, Self::Error> {
         let namespace = value.namespace;
         let mut domain_groups = HashMap::new();
-        let services = value.egress.services;
+        let services = value
+            .egress
+            .services
+            .into_iter()
+            .map(|(id, service_spec)| (id, Arc::new(service_spec)))
+            .collect::<HashMap<u32, Arc<ServiceSpec>>>();
+
         for (domain, domain_group) in value.ingress.domain_groups {
             let mut locations = Vec::new();
 
@@ -47,7 +53,7 @@ impl TryFrom<Ars> for ArsExpand {
                 let proxy_pass_headers = location.proxy_pass_headers;
                 let upstream_service = services
                     .get(&location.upstream_service_id)
-                    .context(NoUpstreamSnafu {
+                    .context(NoUpstreamServiceSnafu {
                         id: location.upstream_service_id,
                     })
                     .context(ArsSnafu)?
@@ -58,7 +64,7 @@ impl TryFrom<Ars> for ArsExpand {
                         upstream_service
                             .methods
                             .get(&upstream_method_id)
-                            .context(NoUpstreamSnafu { id: upstream_method_id })
+                            .context(NoUpstreamMethodSnafu { id: upstream_method_id })
                             .context(ArsSnafu)?
                             .clone(),
                     )
@@ -72,8 +78,8 @@ impl TryFrom<Ars> for ArsExpand {
                     method,
                     proxy_hide_headers,
                     proxy_pass_headers,
-                    upstream_service: Arc::new(upstream_service),
-                    upstream_method: Arc::new(upstream_method),
+                    upstream_service,
+                    upstream_method,
                 };
 
                 locations.push(ingress_location_spec);
