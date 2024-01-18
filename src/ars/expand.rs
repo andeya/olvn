@@ -4,13 +4,13 @@ use crate::error::*;
 
 use super::{Ars, Domain, HeaderName, Method, MethodSpec, Namespace, ServiceSpec};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IngressDomainGroupExpand {
     pub domain_name: Domain,
     pub locations: Vec<IngressLocationSpec>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IngressLocationSpec {
     pub id: u32,
     /// such as `/a/b/c`
@@ -23,7 +23,7 @@ pub struct IngressLocationSpec {
     pub upstream_method: Option<Arc<MethodSpec>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ArsExpand {
     pub namespace: Namespace,
     pub domain_groups: HashMap<Domain, IngressDomainGroupExpand>,

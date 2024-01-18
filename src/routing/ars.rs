@@ -32,14 +32,10 @@ impl GwRouter {
             println!("domain_name: {}", &*ingress_domain_group.domain_name);
             let mut router = Router::new();
             for location in ingress_domain_group.locations {
+                let path = location.path.clone();
                 router = router.route(
-                    location.path.as_str(),
-                    top_level_handler_fn!(location.method, || async move {
-                        // TODO:
-                        let s = format!("{:?}", location.upstream_service);
-                        println!("response: {:?}", s);
-                        s
-                    }),
+                    path.as_str(),
+                    top_level_handler_fn!(location.method, |req| async move { location.reverse_proxy(req) }),
                 );
             }
             gw_router = gw_router.route(ingress_domain_group.domain_name, layer(router));

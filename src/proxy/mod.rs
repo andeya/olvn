@@ -1,4 +1,5 @@
-use axum_core::extract::Request;
+use axum_core::{extract::Request, response::IntoResponse};
+use http::Response;
 
 use crate::ars::{IngressLocationSpec, ServiceIdentifier};
 
@@ -10,5 +11,8 @@ pub struct ServiceEndpoint {
 }
 
 impl IngressLocationSpec {
-    pub(crate) fn reverse_proxy(&self, req: Request) {}
+    pub(crate) fn reverse_proxy(&self, req: Request<axum_core::body::Body>) -> Response<axum_core::body::Body> {
+        println!("req: {:?}", req);
+        format!("{:?}", self).into_response()
+    }
 }
