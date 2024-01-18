@@ -1,4 +1,4 @@
-use crate::error::*;
+use crate::ars::ArsExpand;
 use crate::plugin::layer;
 use crate::{
     ars::{Ars, Method},
@@ -6,7 +6,6 @@ use crate::{
     routing::GwRouter,
     routing::Router,
 };
-use std::sync::Arc;
 
 macro_rules! top_level_handler_fn {
     ($method:expr, $handler:expr) => {
@@ -26,26 +25,18 @@ macro_rules! top_level_handler_fn {
 
 impl GwRouter {
     pub(crate) fn from_ars(ars: Ars) -> Result<GwRouter, GwError> {
+        let ars: ArsExpand = ars.try_into()?;
         let mut gw_router = GwRouter::new();
         println!("namespace: {}", &*ars.namespace);
-        for (_, ingress_domain_group) in ars.ingress.domain_groups {
+        for (_, ingress_domain_group) in ars.domain_groups {
             println!("domain_name: {}", &*ingress_domain_group.domain_name);
             let mut router = Router::new();
             for location in ingress_domain_group.locations {
-                let service = ars
-                    .egress
-                    .services
-                    .get(&location.upstream_service_id)
-                    .context(NoUpstreamSnafu {
-                        id: location.upstream_service_id,
-                    })
-                    .context(ArsSnafu)?;
-                let service = Arc::new(service.clone());
                 router = router.route(
                     location.path.as_str(),
                     top_level_handler_fn!(location.method, || async move {
                         // TODO:
-                        let s = format!("{:?}", service);
+                        let s = format!("{:?}", location.upstream_service);
                         println!("response: {:?}", s);
                         s
                     }),
