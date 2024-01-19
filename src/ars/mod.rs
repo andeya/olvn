@@ -89,11 +89,12 @@ mod tests {
     fn entity_schema() {
         let schema = EntitySchema::Object {
             fields: vec![ObjectSchema {
-                key: "a".to_string(),
-                value_type: Box::new(EntitySchema::String {
+                field_name: "a".to_string(),
+                field_type: Box::new(EntitySchema::String {
                     http_param: Some(HttpParam::Body(Some("a".to_owned()))),
                 }),
                 http_param: Some(HttpParam::Body(Some("X-Olvn-Identifier".to_owned()))),
+                field_id: 1,
             }],
             http_param: Some(HttpParam::Header(Some("X-Olvn-Identifier".to_owned()))),
         };

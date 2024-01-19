@@ -1,5 +1,5 @@
 pub mod ars;
-mod converter;
+pub mod converter;
 pub mod error;
 mod routing;
 mod serve;

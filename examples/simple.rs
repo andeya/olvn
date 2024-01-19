@@ -16,6 +16,7 @@ async fn main() {
             service_name: "p.s.m".to_owned(),
             service_identifier: "p.s.m".into(),
             methods: HashMap::new(),
+            default_encoding_type: 0u8.into(),
         }),
     );
     ars.ingress.domain_groups.insert(

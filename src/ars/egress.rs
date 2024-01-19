@@ -14,7 +14,7 @@ pub struct ServiceSpec {
     pub id: u32,
     pub service_name: String,
     pub service_identifier: ServiceIdentifier,
-    pub default_codec: Codec,
+    pub default_encoding_type: EncodingType,
     pub methods: HashMap<u32, Arc<MethodSpec>>,
 }
 
@@ -23,9 +23,9 @@ pub struct MethodSpec {
     pub id: u32,
     pub method_name: String,
     pub inbound_spec: EntitySchema,
-    pub inbound_codec: Option<Codec>,
+    pub inbound_encoding_type: Option<EncodingType>,
     pub outbound_spec: EntitySchema,
-    pub outbound_codec: Option<Codec>,
+    pub outbound_encoding_type: Option<EncodingType>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
@@ -85,8 +85,9 @@ pub enum EntitySchema {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct ObjectSchema {
-    pub key: String,
-    pub value_type: Box<EntitySchema>,
+    pub field_id: u32,
+    pub field_name: String,
+    pub field_type: Box<EntitySchema>,
     pub http_param: Option<HttpParam>,
 }
 
@@ -124,9 +125,9 @@ pub enum Entity {
 }
 
 #[derive(Default, Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Dummy)]
-pub struct Codec(pub u8);
+pub struct EncodingType(pub u8);
 
-impl From<u8> for Codec {
+impl From<u8> for EncodingType {
     fn from(value: u8) -> Self {
         Self(value)
     }
