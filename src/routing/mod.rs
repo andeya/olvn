@@ -2,10 +2,8 @@ pub use self::gw::GwRouter;
 use self::gw::InnerGwRouter;
 use arc_swap::{ArcSwap, AsRaw};
 use axum::body::HttpBody;
-use axum::http::Request;
 use axum::routing::future::RouteFuture;
 pub use axum::routing::Router;
-use axum_core::response::Response;
 use std::convert::Infallible;
 use std::sync::Arc;
 use std::task::{Context, Poll};
@@ -13,6 +11,9 @@ use tower::Service;
 mod ars;
 mod domain;
 pub mod gw;
+
+pub use axum_core::{extract::Request, response::IntoResponse};
+pub type Response = http::Response<axum_core::body::Body>;
 
 #[derive(Debug, Clone)]
 pub(crate) struct DynRouter {

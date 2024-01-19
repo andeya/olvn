@@ -14,6 +14,7 @@ pub struct ServiceSpec {
     pub id: u32,
     pub service_name: String,
     pub service_identifier: ServiceIdentifier,
+    pub default_codec: Codec,
     pub methods: HashMap<u32, Arc<MethodSpec>>,
 }
 
@@ -22,9 +23,9 @@ pub struct MethodSpec {
     pub id: u32,
     pub method_name: String,
     pub inbound_spec: EntitySchema,
-    pub inbound_codec: Codec,
+    pub inbound_codec: Option<Codec>,
     pub outbound_spec: EntitySchema,
-    pub outbound_codec: Codec,
+    pub outbound_codec: Option<Codec>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
@@ -122,8 +123,14 @@ pub enum Entity {
     Object(std::collections::HashMap<String, EntitySchema>),
 }
 
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
-pub struct Codec(u8);
+#[derive(Default, Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Dummy)]
+pub struct Codec(pub u8);
+
+impl From<u8> for Codec {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct ServiceIdentifier(String);
