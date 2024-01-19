@@ -10,10 +10,13 @@ impl EncodingType {
     const TEXT_PLAIN: EncodingType = EncodingType(5u8);
     const TEXT_PROTOBUF: EncodingType = EncodingType(6u8);
 
-    pub(crate) fn from_request<F: Fn(&Request) -> Option<Self>>(req: &Request, main_mapping: F) -> Self {
-        if let Some(et) = main_mapping(req) {
-            return et;
+    pub(crate) fn from_request<F: Fn(&Request) -> Option<Self>>(req: &Request, main_mapping: Option<F>) -> Self {
+        if let Some(main_mapping) = main_mapping {
+            if let Some(et) = main_mapping(req) {
+                return et;
+            }
         }
+
         if let Some(h) = req.headers().get("Content-Type") {
             match h.as_bytes().splitn(2, |b| *b == b';').next() {
                 Some(h) if h == b"application/json" => EncodingType::JSON,
