@@ -1,6 +1,7 @@
 use fake::Dummy;
 use http::uri::{InvalidUri, Uri};
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -130,6 +131,12 @@ pub struct EncodingType(pub u8);
 impl From<u8> for EncodingType {
     fn from(value: u8) -> Self {
         Self(value)
+    }
+}
+
+impl Display for EncodingType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

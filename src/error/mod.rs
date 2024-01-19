@@ -1,9 +1,14 @@
 pub use snafu::prelude::*;
+
+use crate::ars::EncodingType;
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub enum GwError {
-    #[snafu(display("There was an error with the file: {}", source))]
+    #[snafu(display("ARS: {}", source))]
     Ars { source: ArsError },
+
+    #[snafu(display("Converter: {}", source))]
+    Converter { source: ConverterError },
 
     #[snafu(display("Could not read file: {}", source))]
     Read { source: std::io::Error },
@@ -16,4 +21,11 @@ pub enum ArsError {
     NoUpstreamService { id: u32 },
     #[snafu(display("Could not found upstream method, id={}", id))]
     NoUpstreamMethod { id: u32 },
+}
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
+pub enum ConverterError {
+    #[snafu(display("Could not found converter, from={from}, to={to}"))]
+    NoConverter { from: EncodingType, to: EncodingType },
 }

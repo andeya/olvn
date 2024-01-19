@@ -34,28 +34,20 @@ impl EncodingType {
     fn is_protobuf(h: &HeaderValue) -> bool {
         Self::is(b"application/x-protobuf", h)
     }
-}
 
-impl From<&HeaderValue> for EncodingType {
-    fn from(h: &HeaderValue) -> Self {
-        match h {
-            h if EncodingType::is_json(h) => EncodingType::JSON,
-            h if EncodingType::is_form_data(h) => EncodingType::FORM_DATA,
-            h if EncodingType::is_form_urlencoded(h) => EncodingType::FORM_URLENCODED,
-            h if EncodingType::is_html(h) => EncodingType::TEXT_HTML,
-            h if EncodingType::is_plain(h) => EncodingType::TEXT_PLAIN,
-            h if EncodingType::is_protobuf(h) => EncodingType::TEXT_PROTOBUF,
-            _ => EncodingType::NO_CARE,
-        }
-    }
-}
-
-impl From<&Request> for EncodingType {
-    fn from(value: &Request) -> Self {
-        if let Some(h) = value.headers().get("Content-Type") {
-            h.into()
+    pub(crate) fn from_request<F: Fn(&Request) -> Self>(req: &Request, fallback: F) -> Self {
+        if let Some(h) = req.headers().get("Content-Type") {
+            match h {
+                h if EncodingType::is_json(h) => EncodingType::JSON,
+                h if EncodingType::is_form_urlencoded(h) => EncodingType::FORM_URLENCODED,
+                h if EncodingType::is_form_data(h) => EncodingType::FORM_DATA,
+                h if EncodingType::is_plain(h) => EncodingType::TEXT_PLAIN,
+                h if EncodingType::is_protobuf(h) => EncodingType::TEXT_PROTOBUF,
+                h if EncodingType::is_html(h) => EncodingType::TEXT_HTML,
+                _ => fallback(req),
+            }
         } else {
-            EncodingType::NO_CARE
+            fallback(req)
         }
     }
 }
