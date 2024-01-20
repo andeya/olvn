@@ -7,7 +7,7 @@ use super::Domain;
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct HeaderName(String);
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, derive_more::Display, Dummy)]
 pub enum Method {
     Any,
     Options,

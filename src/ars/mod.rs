@@ -9,8 +9,6 @@ pub use egress::*;
 use fake::Dummy;
 pub use ingress::*;
 use std::ops::Deref;
-mod expand;
-pub use expand::{ArsExpand, RouteSpec};
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct Ars {

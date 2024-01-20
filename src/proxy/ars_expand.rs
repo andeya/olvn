@@ -1,44 +1,44 @@
 use std::{collections::HashMap, sync::Arc};
 
+use crate::converter::ConverterIndex;
 use crate::error::*;
 
-use super::{Ars, Domain, HeaderName, Method, MethodSpec, Namespace, ServiceSpec};
+use crate::ars::{Ars, Domain, HeaderName, Method, MethodSpec, Namespace, ServiceSpec};
 
 #[derive(Debug, Clone)]
 pub struct ArsExpand {
-    pub namespace: Namespace,
-    pub domain_groups: HashMap<Domain, RouteMapper>,
+    pub(crate) namespace: Namespace,
+    pub(crate) domain_groups: HashMap<Domain, RouteMapper>,
 }
 
 #[derive(Debug, Clone)]
 pub struct RouteMapper {
-    pub domain_name: Domain,
-    pub routes: Vec<RouteSpec>,
+    pub(crate) domain_name: Domain,
+    pub(crate) handlers: Vec<Arc<ProxyHandler>>,
 }
 
-#[derive(Debug, Clone)]
-pub struct RouteSpec {
-    pub id: u32,
+#[derive(Debug)]
+pub struct ProxyHandler {
+    pub(crate) id: u32,
     /// such as `/a/b/c`
-    pub path: String,
-    pub method: Method,
-    pub proxy_hide_headers: Vec<HeaderName>,
-    pub proxy_pass_headers: Vec<HeaderName>,
-    pub upstream_service: Arc<ServiceSpec>,
+    pub(crate) path: String,
+    pub(crate) method: Method,
+    pub(crate) proxy_hide_headers: Vec<HeaderName>,
+    pub(crate) proxy_pass_headers: Vec<HeaderName>,
+    pub(crate) upstream_service: Arc<ServiceSpec>,
     /// If None, proxy transparently
-    pub upstream_method: Option<Arc<MethodSpec>>,
+    pub(crate) upstream_method: Option<Arc<MethodSpec>>,
+    pub(crate) converter_index: Arc<ConverterIndex>,
 }
 
-impl TryFrom<Ars> for ArsExpand {
-    type Error = GwError;
-
-    fn try_from(value: Ars) -> Result<Self, Self::Error> {
+impl ArsExpand {
+    pub fn try_from(value: Ars, converter_index: Arc<ConverterIndex>) -> Result<Self, GwError> {
         let namespace = value.namespace;
         let mut domain_groups = HashMap::new();
         let services = value.egress.services;
 
         for (domain, domain_group) in value.ingress.domain_groups {
-            let mut locations = Vec::new();
+            let mut handlers = Vec::new();
 
             for location in domain_group.routes {
                 let id = location.id;
@@ -67,7 +67,7 @@ impl TryFrom<Ars> for ArsExpand {
                     None
                 };
 
-                let ingress_location_spec = RouteSpec {
+                let handler = Arc::new(ProxyHandler {
                     id,
                     path,
                     method,
@@ -75,14 +75,15 @@ impl TryFrom<Ars> for ArsExpand {
                     proxy_pass_headers,
                     upstream_service,
                     upstream_method,
-                };
+                    converter_index: converter_index.clone(),
+                });
 
-                locations.push(ingress_location_spec);
+                handlers.push(handler);
             }
 
             let ingress_domain_group_expand = RouteMapper {
                 domain_name: domain.clone(),
-                routes: locations,
+                handlers,
             };
 
             domain_groups.insert(domain, ingress_domain_group_expand);

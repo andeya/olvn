@@ -54,8 +54,12 @@ impl GwRouter {
         } else {
             fallback()
         }));
-        for ele in self.routers {
-            inner.0.push(DomainRouter::new(ele.0, ele.1));
+        let fallback_router = inner.fallback_router().router.clone();
+        for (domain, router) in self.routers {
+            inner.0.push(DomainRouter::new(
+                domain,
+                router.fallback_service(fallback_router.clone()),
+            ));
         }
         inner
     }

@@ -1,33 +1,21 @@
-use std::sync::Arc;
-
-use crate::ars::{Entity, RouteSpec, ServiceIdentifier};
-use crate::converter::ConverterIndex;
+use crate::ars::{Entity, ServiceIdentifier};
 use crate::routing::{IntoResponse, Request, Response};
+use crate::state::GwContext;
+mod ars_expand;
 mod discovery;
+pub use ars_expand::{ArsExpand, ProxyHandler};
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ServiceEndpoint {
     pub identifier: ServiceIdentifier,
 }
 
-#[derive(Debug, Clone)]
-pub struct ProxyHandler {
-    route_spec: RouteSpec,
-    converter_index: Arc<ConverterIndex>,
-}
-
 impl ProxyHandler {
-    pub(crate) fn new(route_spec: RouteSpec, converter_index: Arc<ConverterIndex>) -> Self {
-        Self {
-            route_spec,
-            converter_index,
-        }
-    }
-
     #[inline]
     pub(crate) fn reverse_proxy(&self, req: Request) -> Response {
+        let state = req.extensions().get::<GwContext>().unwrap();
         println!("{:?}", req);
-        format!("{:?}", self.route_spec).into_response()
+        format!("method={}, path={}, state={:?}", self.method, self.path, state).into_response()
     }
     #[inline]
     fn convert_request(&self, _req: &Request) -> Option<Entity> {

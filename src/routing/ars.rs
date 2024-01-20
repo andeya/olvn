@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
-use crate::ars::ArsExpand;
 use crate::converter::ConverterIndex;
 use crate::plugin::layer;
-use crate::proxy::ProxyHandler;
+use crate::proxy::ArsExpand;
 use crate::{
     ars::{Ars, Method},
     error::GwError,
@@ -29,21 +28,23 @@ macro_rules! top_level_handler_fn {
 
 impl GwRouter {
     pub(crate) fn from_ars(ars: Ars, converter_index: Arc<ConverterIndex>) -> Result<GwRouter, GwError> {
-        let ars: ArsExpand = ars.try_into()?;
+        let ars = ArsExpand::try_from(ars, converter_index)?;
         let mut gw_router = GwRouter::new(None);
         println!("namespace: {}", &*ars.namespace);
-        for (_, ingress_domain_group) in ars.domain_groups {
-            println!("domain_name: {}", &*ingress_domain_group.domain_name);
+        for (_, route_mapper) in ars.domain_groups {
+            println!("domain_name: {}", &*route_mapper.domain_name);
             let mut router = Router::new();
-            for route_spec in ingress_domain_group.routes {
-                let path = route_spec.path.clone();
-                let proxy_handler = ProxyHandler::new(route_spec.clone(), converter_index.clone());
+            for proxy_handler in route_mapper.handlers {
+                let path = proxy_handler.path.clone();
                 router = router.route(
                     path.as_str(),
-                    top_level_handler_fn!(route_spec.method, |req| async move { proxy_handler.reverse_proxy(req) }),
+                    top_level_handler_fn!(
+                        proxy_handler.method,
+                        |req| async move { proxy_handler.reverse_proxy(req) }
+                    ),
                 );
             }
-            gw_router = gw_router.route(ingress_domain_group.domain_name, layer(router));
+            gw_router = gw_router.route(route_mapper.domain_name, layer(router));
         }
         Ok(gw_router)
     }
