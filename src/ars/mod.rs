@@ -86,7 +86,7 @@ mod tests {
     use crate::ars::*;
     use fake::{Fake, Faker};
     #[test]
-    fn entity_ars() {
+    fn ars() {
         let ars: Ars = Faker.fake();
         println!("{}", serde_json::to_string_pretty(&ars).unwrap());
     }
