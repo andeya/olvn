@@ -40,7 +40,7 @@ mod tests {
                     .route(
                         "/green",
                         get(|| async {
-                            SERVE.hot_update(GwRouter::from_fallback(GREEN.clone().unwrap()));
+                            SERVE.hot_update(GwRouter::new(Some(GREEN.clone().unwrap())));
                             println!("Switch to Green!");
                             "Switch to Green!"
                         }),
@@ -59,13 +59,13 @@ mod tests {
                     .route(
                         "/blue",
                         get(|| async {
-                            SERVE.hot_update(GwRouter::from_fallback(BLUE.clone().unwrap()));
+                            SERVE.hot_update(GwRouter::new(Some(BLUE.clone().unwrap())));
                             println!("Switch to Blue!");
                             "Switch to Blue!"
                         }),
                     ),
             );
-            SERVE.hot_update(GwRouter::from_fallback(BLUE.clone().unwrap()));
+            SERVE.hot_update(GwRouter::new(Some(BLUE.clone().unwrap())));
         }
 
         // run our app with hyper, listening globally on port 3000

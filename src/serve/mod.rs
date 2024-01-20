@@ -1,9 +1,13 @@
 use crate::{
     ars::Ars,
+    converter::ConverterIndex,
     error::GwError,
     routing::{DynRouter, GwRouter},
 };
-use std::{future::Future, sync::Mutex};
+use std::{
+    future::Future,
+    sync::{Arc, Mutex},
+};
 pub use tokio::net::TcpListener;
 
 pub struct Serve {
@@ -26,8 +30,9 @@ impl Serve {
         self.get_or_init_router().refresh(router);
         self
     }
-    pub fn hot_update_ars(&self, ars: Ars) -> Result<(), GwError> {
-        self.get_or_init_router().refresh(GwRouter::from_ars(ars)?);
+    pub fn hot_update_ars(&self, ars: Ars, converter_index: Arc<ConverterIndex>) -> Result<(), GwError> {
+        self.get_or_init_router()
+            .refresh(GwRouter::from_ars(ars, converter_index)?);
         Ok(())
     }
     pub async fn serve(&self, listener: TcpListener) -> Result<(), std::io::Error> {

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use olvn::ars::*;
+use olvn::converter::ConverterIndex;
 use olvn::*;
 
 #[olvn::main]
@@ -34,7 +35,8 @@ async fn main() {
             }],
         },
     );
-    SERVE.hot_update_ars(ars).unwrap();
+    let converter_index = Arc::new(ConverterIndex::new());
+    SERVE.hot_update_ars(ars, converter_index).unwrap();
     // run our app with hyper, listening globally on port 3000
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
     SERVE.serve(listener).await.unwrap();

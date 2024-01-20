@@ -12,40 +12,49 @@ use std::convert::Infallible;
 use tokio::time::Instant;
 use tower::Service;
 #[derive(Debug, Clone)]
-pub struct GwRouter(BTreeMap<Domain, Router>);
+pub struct GwRouter {
+    routers: BTreeMap<Domain, Router>,
+}
+impl Default for GwRouter {
+    fn default() -> Self {
+        Self {
+            routers: Default::default(),
+        }
+    }
+}
 
 impl GwRouter {
-    pub fn new() -> Self {
-        Self(BTreeMap::new())
+    pub fn new(fallback: Option<Router>) -> Self {
+        let s = Self {
+            routers: BTreeMap::new(),
+        };
+        s.fallback(fallback)
     }
+
     #[inline]
-    pub fn from_fallback(fallback: Router) -> Self {
-        Self::new().fallback(Some(fallback))
-    }
-    #[inline]
-    pub fn fallback(mut self, fallback: Option<Router>) -> Self {
+    fn fallback(mut self, fallback: Option<Router>) -> Self {
         let _ = self
-            .0
+            .routers
             .insert(FALLBACK_NO_DOMAIN, fallback.unwrap_or_else(not_found_router));
         self
     }
     pub fn route(mut self, domain: Domain, router: Router) -> Self {
-        let _ = self.0.insert(domain, router);
+        let _ = self.routers.insert(domain, router);
         self
     }
     pub fn get(&self, domain: &Domain) -> Option<&Router> {
-        self.0.get(domain)
+        self.routers.get(domain)
     }
     pub fn get_mut(&mut self, domain: &Domain) -> Option<&mut Router> {
-        self.0.get_mut(domain)
+        self.routers.get_mut(domain)
     }
     pub(crate) fn into_inner<F: Fn() -> Router>(mut self, fallback: F) -> InnerGwRouter {
-        let mut inner = InnerGwRouter::new(Some(if let Some(fallback) = self.0.remove(&FALLBACK_NO_DOMAIN) {
+        let mut inner = InnerGwRouter::new(Some(if let Some(fallback) = self.routers.remove(&FALLBACK_NO_DOMAIN) {
             fallback
         } else {
             fallback()
         }));
-        for ele in self.0 {
+        for ele in self.routers {
             inner.0.push(DomainRouter::new(ele.0, ele.1));
         }
         inner

@@ -8,6 +8,7 @@ pub type RequestConverter = fn(&Request) -> Result<Vec<u8>, GwError>;
 
 pub type ResponseConverter = fn(&[u8]) -> Result<Vec<u8>, GwError>;
 
+#[derive(Debug, Clone)]
 pub struct ConverterIndex {
     request_converters: [[Option<RequestConverter>; 255]; 255],
     response_converters: [[Option<ResponseConverter>; 255]; 255],
@@ -15,16 +16,16 @@ pub struct ConverterIndex {
 
 impl Default for ConverterIndex {
     fn default() -> Self {
-        Self {
-            request_converters: [[None; 255]; 255],
-            response_converters: [[None; 255]; 255],
-        }
+        Self::new()
     }
 }
 
 impl ConverterIndex {
-    pub fn new() -> Self {
-        Self::default()
+    pub const fn new() -> Self {
+        Self {
+            request_converters: [[None; 255]; 255],
+            response_converters: [[None; 255]; 255],
+        }
     }
     pub fn register_request_converter(
         &mut self,
@@ -53,5 +54,15 @@ impl ConverterIndex {
         converter
             .context(NoConverterSnafu { from, to })
             .context(ConverterSnafu)?(resp)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ConverterIndex;
+
+    #[test]
+    fn test_converter_index() {
+        println!("{:?}", ConverterIndex::default())
     }
 }
