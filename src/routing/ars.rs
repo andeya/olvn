@@ -31,11 +31,11 @@ impl GwRouter {
         for (_, ingress_domain_group) in ars.domain_groups {
             println!("domain_name: {}", &*ingress_domain_group.domain_name);
             let mut router = Router::new();
-            for location in ingress_domain_group.locations {
-                let path = location.path.clone();
+            for route_spec in ingress_domain_group.routes {
+                let path = route_spec.path.clone();
                 router = router.route(
                     path.as_str(),
-                    top_level_handler_fn!(location.method, |req| async move { location.reverse_proxy(req) }),
+                    top_level_handler_fn!(route_spec.method, |req| async move { route_spec.reverse_proxy(req) }),
                 );
             }
             gw_router = gw_router.route(ingress_domain_group.domain_name, layer(router));

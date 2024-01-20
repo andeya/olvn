@@ -5,13 +5,19 @@ use crate::error::*;
 use super::{Ars, Domain, HeaderName, Method, MethodSpec, Namespace, ServiceSpec};
 
 #[derive(Debug, Clone)]
-pub struct IngressDomainGroupExpand {
-    pub domain_name: Domain,
-    pub locations: Vec<IngressLocationSpec>,
+pub struct ArsExpand {
+    pub namespace: Namespace,
+    pub domain_groups: HashMap<Domain, RouteMapper>,
 }
 
 #[derive(Debug, Clone)]
-pub struct IngressLocationSpec {
+pub struct RouteMapper {
+    pub domain_name: Domain,
+    pub routes: Vec<RouteSpec>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RouteSpec {
     pub id: u32,
     /// such as `/a/b/c`
     pub path: String,
@@ -21,12 +27,6 @@ pub struct IngressLocationSpec {
     pub upstream_service: Arc<ServiceSpec>,
     /// If None, proxy transparently
     pub upstream_method: Option<Arc<MethodSpec>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct ArsExpand {
-    pub namespace: Namespace,
-    pub domain_groups: HashMap<Domain, IngressDomainGroupExpand>,
 }
 
 impl TryFrom<Ars> for ArsExpand {
@@ -40,7 +40,7 @@ impl TryFrom<Ars> for ArsExpand {
         for (domain, domain_group) in value.ingress.domain_groups {
             let mut locations = Vec::new();
 
-            for location in domain_group.locations {
+            for location in domain_group.routes {
                 let id = location.id;
                 let path = location.path;
                 let method = location.method;
@@ -67,7 +67,7 @@ impl TryFrom<Ars> for ArsExpand {
                     None
                 };
 
-                let ingress_location_spec = IngressLocationSpec {
+                let ingress_location_spec = RouteSpec {
                     id,
                     path,
                     method,
@@ -80,9 +80,9 @@ impl TryFrom<Ars> for ArsExpand {
                 locations.push(ingress_location_spec);
             }
 
-            let ingress_domain_group_expand = IngressDomainGroupExpand {
+            let ingress_domain_group_expand = RouteMapper {
                 domain_name: domain.clone(),
-                locations,
+                routes: locations,
             };
 
             domain_groups.insert(domain, ingress_domain_group_expand);

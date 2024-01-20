@@ -21,9 +21,9 @@ async fn main() {
     );
     ars.ingress.domain_groups.insert(
         "www.github.com".into(),
-        IngressDomainGroup {
+        IngressRouteMapper {
             domain_name: "www.github.com".into(),
-            locations: vec![IngressLocation {
+            routes: vec![IngressRouteSpec {
                 id: 1,
                 path: "/".to_owned(),
                 method: Method::Any,

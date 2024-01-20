@@ -1,4 +1,4 @@
-use crate::ars::{Entity, IngressLocationSpec, ServiceIdentifier};
+use crate::ars::{Entity, RouteSpec, ServiceIdentifier};
 use crate::routing::{IntoResponse, Request, Response};
 mod discovery;
 
@@ -7,7 +7,7 @@ pub struct ServiceEndpoint {
     pub identifier: ServiceIdentifier,
 }
 
-impl IngressLocationSpec {
+impl RouteSpec {
     #[inline]
     pub(crate) fn reverse_proxy(&self, req: Request) -> Response {
         println!("req: {:?}", req);

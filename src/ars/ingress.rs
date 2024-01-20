@@ -28,18 +28,18 @@ impl Default for Method {
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct IngressSpec {
-    pub domain_groups: HashMap<Domain, IngressDomainGroup>,
+    pub domain_groups: HashMap<Domain, IngressRouteMapper>,
 }
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
-pub struct IngressDomainGroup {
+pub struct IngressRouteMapper {
     pub domain_name: Domain,
-    pub locations: Vec<IngressLocation>,
+    pub routes: Vec<IngressRouteSpec>,
 }
 
 // via: nginx https://blog.51cto.com/blief/1739178
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
-pub struct IngressLocation {
+pub struct IngressRouteSpec {
     pub id: u32,
     /// such as `/a/b/c`
     pub path: String,
