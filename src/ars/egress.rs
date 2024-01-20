@@ -23,65 +23,36 @@ pub struct ServiceSpec {
 pub struct MethodSpec {
     pub id: u32,
     pub method_name: String,
-    pub inbound_spec: EntitySchema,
-    pub inbound_encoding_type: Option<EncodingType>,
-    pub outbound_spec: EntitySchema,
-    pub outbound_encoding_type: Option<EncodingType>,
+    pub inbound_spec: ParameterSpec,
+    pub outbound_spec: ParameterSpec,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
+pub struct ParameterSpec {
+    pub entity_spec: EntitySchema,
+    pub encoding_type: Option<EncodingType>,
+    pub convert_option: ConvertOption,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 #[serde(rename_all = "snake_case")]
 pub enum EntitySchema {
-    Bool {
-        http_param: Option<HttpParam>,
-    },
-    I8 {
-        http_param: Option<HttpParam>,
-    },
-    I16 {
-        http_param: Option<HttpParam>,
-    },
-    I32 {
-        http_param: Option<HttpParam>,
-    },
-    I64 {
-        http_param: Option<HttpParam>,
-    },
-    I128 {
-        http_param: Option<HttpParam>,
-    },
-    U8 {
-        http_param: Option<HttpParam>,
-    },
-    U16 {
-        http_param: Option<HttpParam>,
-    },
-    U32 {
-        http_param: Option<HttpParam>,
-    },
-    U64 {
-        http_param: Option<HttpParam>,
-    },
-    U128 {
-        http_param: Option<HttpParam>,
-    },
-    F32 {
-        http_param: Option<HttpParam>,
-    },
-    F64 {
-        http_param: Option<HttpParam>,
-    },
-    String {
-        http_param: Option<HttpParam>,
-    },
-    Array {
-        elem_type: Box<EntitySchema>,
-        http_param: Option<HttpParam>,
-    },
-    Object {
-        fields: Vec<ObjectSchema>,
-        http_param: Option<HttpParam>,
-    },
+    Bool,
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+    F32,
+    F64,
+    String,
+    Array { elem: Box<EntitySchema> },
+    Object { fields: Vec<ObjectSchema> },
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
@@ -89,12 +60,24 @@ pub struct ObjectSchema {
     pub field_id: u32,
     pub field_name: String,
     pub field_type: Box<EntitySchema>,
-    pub http_param: Option<HttpParam>,
+    pub convert_option: ConvertOption,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
+pub struct ConvertionName(String);
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
+pub struct ConvertOption {
+    pub default_value: Option<String>,
+    pub http_loc: Option<HttpLoc>,
+    pub from_http_with: Option<ConvertionName>,
+    pub to_http_with: Option<ConvertionName>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 #[serde(rename_all = "snake_case")]
-pub enum HttpParam {
+#[serde(tag = "loc", content = "key")]
+pub enum HttpLoc {
     Body(Option<String>),
     Header(Option<String>),
     Cookie(Option<String>),

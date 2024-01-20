@@ -32,4 +32,21 @@ impl EncodingType {
             Self::NO_CARE
         }
     }
+
+    pub(crate) fn to_content_type<F: Fn(Self) -> Option<&'static str>>(self, main_mapping: Option<F>) -> &'static str {
+        if let Some(main_mapping) = main_mapping {
+            if let Some(et) = main_mapping(self) {
+                return et;
+            }
+        }
+        match self {
+            EncodingType::JSON => "application/json",
+            EncodingType::FORM_URLENCODED => "application/x-www-form-urlencoded",
+            EncodingType::FORM_DATA => "multipart/form-data",
+            EncodingType::TEXT_PLAIN => "text/plain",
+            EncodingType::TEXT_PROTOBUF => "application/x-protobuf",
+            EncodingType::TEXT_HTML => "text/html",
+            _ => "application/octet-stream",
+        }
+    }
 }

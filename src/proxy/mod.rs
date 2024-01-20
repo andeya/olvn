@@ -14,18 +14,11 @@ impl IngressLocationSpec {
         format!("{:?}", self).into_response()
     }
     #[inline]
-    fn request_to_entity(&self, _req: &Request) -> Option<Entity> {
-        if let Some(upstream_method) = &self.upstream_method {
-            let _codec = upstream_method
-                .inbound_encoding_type
-                .clone()
-                .unwrap_or(self.upstream_service.default_encoding_type);
-        } else {
-        }
+    fn convert_request(&self, _req: &Request) -> Option<Entity> {
         unimplemented!()
     }
     #[inline]
-    fn entity_to_response<T>(&self, _resp: T) -> Response {
+    fn convert_response<T>(&self, _resp: T) -> Response {
         unimplemented!()
     }
 }

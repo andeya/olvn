@@ -2,15 +2,11 @@ mod encoding_type;
 
 use crate::error::*;
 
-use crate::{
-    ars::EncodingType,
-    error::GwError,
-    routing::{Request, Response},
-};
+use crate::{ars::EncodingType, error::GwError, routing::Request};
 
 pub type RequestConverter = fn(&Request) -> Result<Vec<u8>, GwError>;
 
-pub type ResponseConverter = fn(&[u8]) -> Result<Response, GwError>;
+pub type ResponseConverter = fn(&[u8]) -> Result<Vec<u8>, GwError>;
 
 pub struct ConverterIndex {
     request_converters: [[Option<RequestConverter>; 255]; 255],
@@ -52,7 +48,7 @@ impl ConverterIndex {
             .context(NoConverterSnafu { from, to })
             .context(ConverterSnafu)?(req)
     }
-    pub fn convert_response(&self, from: EncodingType, to: EncodingType, resp: &[u8]) -> Result<Response, GwError> {
+    pub fn convert_response(&self, from: EncodingType, to: EncodingType, resp: &[u8]) -> Result<Vec<u8>, GwError> {
         let converter = self.response_converters[from.0 as usize][to.0 as usize];
         converter
             .context(NoConverterSnafu { from, to })
