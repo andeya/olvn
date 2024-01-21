@@ -1,7 +1,6 @@
 use fake::Dummy;
 use http::uri::{InvalidUri, Uri};
 use std::collections::HashMap;
-use std::fmt::Display;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -15,7 +14,7 @@ pub struct ServiceSpec {
     pub id: u32,
     pub service_name: String,
     pub service_identifier: ServiceIdentifier,
-    pub default_encoding_type: EncodingType,
+    pub default_codec_id: CodecId,
     pub methods: HashMap<u32, Arc<MethodSpec>>,
 }
 
@@ -30,7 +29,7 @@ pub struct MethodSpec {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct ParameterSpec {
     pub entity_spec: EntitySchema,
-    pub encoding_type: Option<EncodingType>,
+    pub codec_id: Option<CodecId>,
     pub convert_option: ConvertOption,
 }
 
@@ -63,15 +62,15 @@ pub struct ObjectSchema {
     pub convert_option: ConvertOption,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
-pub struct ConvertionName(String);
+#[derive(Debug, Clone, Copy, derive_more::Display, serde::Serialize, serde::Deserialize, Dummy)]
+pub struct ConverterId(pub u8);
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct ConvertOption {
     pub default_value: Option<String>,
     pub http_loc: Option<HttpLoc>,
-    pub from_http_with: Option<ConvertionName>,
-    pub to_http_with: Option<ConvertionName>,
+    pub from_http_with: Option<ConverterId>,
+    pub to_http_with: Option<ConverterId>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
@@ -108,18 +107,14 @@ pub enum Entity {
     Object(std::collections::HashMap<String, EntitySchema>),
 }
 
-#[derive(Default, Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Dummy)]
-pub struct EncodingType(pub u8);
+#[derive(
+    Default, Debug, derive_more::Display, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Dummy,
+)]
+pub struct CodecId(pub u8);
 
-impl From<u8> for EncodingType {
+impl From<u8> for CodecId {
     fn from(value: u8) -> Self {
         Self(value)
-    }
-}
-
-impl Display for EncodingType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 

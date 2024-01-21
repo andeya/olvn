@@ -1,11 +1,16 @@
 pub use snafu::prelude::*;
 
-use crate::ars::EncodingType;
+use crate::ars::CodecId;
+use crate::ars::ConverterId;
+
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
 pub enum GwError {
     #[snafu(display("ARS: {}", source))]
     Ars { source: ArsError },
+
+    #[snafu(display("Codec: {}", source))]
+    Codec { source: CodecError },
 
     #[snafu(display("Converter: {}", source))]
     Converter { source: ConverterError },
@@ -25,7 +30,14 @@ pub enum ArsError {
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
+pub enum CodecError {
+    #[snafu(display("Could not found codec, id={id}"))]
+    NoCodec { id: CodecId },
+}
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
 pub enum ConverterError {
-    #[snafu(display("Could not found converter, from={from}, to={to}"))]
-    NoConverter { from: EncodingType, to: EncodingType },
+    #[snafu(display("Could not found converter, id={id}"))]
+    NoConverter { id: ConverterId },
 }

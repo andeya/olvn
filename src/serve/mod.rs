@@ -1,8 +1,8 @@
 use crate::{
     ars::Ars,
-    converter::ConverterIndex,
     error::GwError,
     routing::{DynRouter, GwRouter},
+    transcoding::Transcoding,
 };
 use std::{
     future::Future,
@@ -30,9 +30,8 @@ impl Serve {
         self.get_or_init_router().refresh(router);
         self
     }
-    pub fn hot_update_ars(&self, ars: Ars, converter_index: Arc<ConverterIndex>) -> Result<(), GwError> {
-        self.get_or_init_router()
-            .refresh(GwRouter::from_ars(ars, converter_index)?);
+    pub fn hot_update_ars(&self, ars: Ars, transcoding: Arc<Transcoding>) -> Result<(), GwError> {
+        self.get_or_init_router().refresh(GwRouter::from_ars(ars, transcoding)?);
         Ok(())
     }
     pub async fn serve(&self, listener: TcpListener) -> Result<(), std::io::Error> {

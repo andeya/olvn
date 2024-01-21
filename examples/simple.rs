@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use olvn::ars::*;
-use olvn::converter::ConverterIndex;
+use olvn::transcoding::Transcoding;
 use olvn::*;
 
 #[olvn::main]
@@ -17,7 +17,7 @@ async fn main() {
             service_name: "p.s.m".to_owned(),
             service_identifier: "p.s.m".into(),
             methods: HashMap::new(),
-            default_encoding_type: 0u8.into(),
+            default_codec_id: 0u8.into(),
         }),
     );
     ars.ingress.domain_groups.insert(
@@ -35,7 +35,7 @@ async fn main() {
             }],
         },
     );
-    let converter_index = Arc::new(ConverterIndex::new());
+    let converter_index = Arc::new(Transcoding::new());
     SERVE.hot_update_ars(ars, converter_index).unwrap();
     // run our app with hyper, listening globally on port 3000
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
