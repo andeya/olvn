@@ -37,7 +37,6 @@ pub struct IngressRouteMapper {
     pub routes: Vec<IngressRouteSpec>,
 }
 
-// via: nginx https://blog.51cto.com/blief/1739178
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct IngressRouteSpec {
     pub id: u32,
@@ -47,6 +46,6 @@ pub struct IngressRouteSpec {
     pub proxy_hide_headers: Vec<HeaderName>,
     pub proxy_pass_headers: Vec<HeaderName>,
     pub upstream_service_id: u32,
-    /// If None, proxy transparently
+    /// If None, use automapper
     pub upstream_method_id: Option<u32>,
 }

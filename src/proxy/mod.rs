@@ -1,9 +1,9 @@
 use crate::ars::{Entity, ServiceIdentifier};
 use crate::routing::{IntoResponse, Request, Response};
 use crate::state::GwContext;
-mod ars_expand;
+mod aro;
 mod discovery;
-pub use ars_expand::{ArsExpand, ProxyHandler};
+pub use aro::{Aro, ProxyHandler};
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct ServiceEndpoint {

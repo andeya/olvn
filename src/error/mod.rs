@@ -2,6 +2,7 @@ pub use snafu::prelude::*;
 
 use crate::ars::CodecId;
 use crate::ars::ConverterId;
+use crate::ars::MethodMapperId;
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
@@ -14,6 +15,15 @@ pub enum GwError {
 
     #[snafu(display("Converter: {}", source))]
     Converter { source: ConverterError },
+
+    #[snafu(display("MethodMapper: {}", source))]
+    MethodMapper { source: MethodMapperError },
+
+    #[snafu(display("JsonMarshal: {}", source))]
+    JsonMarshal { source: serde_json::Error },
+
+    #[snafu(display("JsonUnmarshal: {}", source))]
+    JsonUnmarshal { source: serde_json::Error },
 
     #[snafu(display("Could not read file: {}", source))]
     Read { source: std::io::Error },
@@ -40,4 +50,11 @@ pub enum CodecError {
 pub enum ConverterError {
     #[snafu(display("Could not found converter, id={id}"))]
     NoConverter { id: ConverterId },
+}
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
+pub enum MethodMapperError {
+    #[snafu(display("Could not found method mapper, id={id}"))]
+    NoMethodMapper { id: MethodMapperId },
 }

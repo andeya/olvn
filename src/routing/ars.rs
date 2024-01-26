@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::plugin::layer;
-use crate::proxy::ArsExpand;
+use crate::proxy::Aro;
 use crate::transcoding::Transcoding;
 use crate::{
     ars::{Ars, Method},
@@ -28,7 +28,7 @@ macro_rules! top_level_handler_fn {
 
 impl GwRouter {
     pub(crate) fn from_ars(ars: Ars, transcoding: Arc<Transcoding>) -> Result<GwRouter, GwError> {
-        let ars = ArsExpand::try_from(ars, transcoding)?;
+        let ars = Aro::try_from(ars, transcoding)?;
         let mut gw_router = GwRouter::new(None);
         println!("namespace: {}", &*ars.namespace);
         for (_, route_mapper) in ars.domain_groups {

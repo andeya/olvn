@@ -41,6 +41,7 @@ tower.workspace = true
 http.workspace = true
 fake.workspace = true
 derive_more.workspace = true
+heck.workspace = true
 
 [workspace]
 resolver = "2"
@@ -74,3 +75,4 @@ lazy_static = "1"
 http = "1"
 fake = { version = "2.9.2", features = ["derive"] }
 derive_more = "0.99.17"
+heck = "0.4.1"

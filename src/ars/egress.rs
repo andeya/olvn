@@ -1,12 +1,12 @@
 use fake::Dummy;
 use http::uri::{InvalidUri, Uri};
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::ops::Deref;
-use std::sync::Arc;
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct EgressSpec {
-    pub services: HashMap<u32, Arc<ServiceSpec>>,
+    pub services: HashMap<u32, ServiceSpec>,
 }
 
 #[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
@@ -15,9 +15,21 @@ pub struct ServiceSpec {
     pub service_name: String,
     pub service_identifier: ServiceIdentifier,
     pub default_codec_id: CodecId,
-    pub methods: HashMap<u32, Arc<MethodSpec>>,
+    pub methods: HashMap<u32, MethodSpec>,
+    /// Automatic mapping algorithm from http to service method
+    pub method_mapper: MethodMapperId,
 }
 
+#[derive(
+    Default, Debug, derive_more::Display, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Dummy,
+)]
+pub struct MethodMapperId(pub u8);
+
+impl From<u8> for MethodMapperId {
+    fn from(value: u8) -> Self {
+        Self(value)
+    }
+}
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct MethodSpec {
     pub id: u32,
@@ -105,6 +117,14 @@ pub enum Entity {
     String(String),
     Array(Vec<EntitySchema>),
     Object(std::collections::HashMap<String, EntitySchema>),
+}
+
+impl Display for Entity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        serde_json::to_string(self)
+            .map_err(|_| std::fmt::Error)
+            .and_then(|s| write!(f, "{}", s))
+    }
 }
 
 #[derive(

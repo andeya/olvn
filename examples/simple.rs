@@ -12,13 +12,14 @@ async fn main() {
     ars.namespace = "default".into();
     ars.egress.services.insert(
         1,
-        Arc::new(ServiceSpec {
+        ServiceSpec {
             id: 1,
             service_name: "p.s.m".to_owned(),
             service_identifier: "p.s.m".into(),
             methods: HashMap::new(),
             default_codec_id: 0u8.into(),
-        }),
+            method_mapper: 0.into(),
+        },
     );
     ars.ingress.domain_groups.insert(
         "www.github.com".into(),
@@ -35,7 +36,7 @@ async fn main() {
             }],
         },
     );
-    let converter_index = Arc::new(Transcoding::new());
+    let converter_index = Arc::new(Transcoding::default());
     SERVE.hot_update_ars(ars, converter_index).unwrap();
     // run our app with hyper, listening globally on port 3000
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
