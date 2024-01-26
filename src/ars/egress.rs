@@ -15,7 +15,7 @@ pub struct ServiceSpec {
     pub service_name: String,
     pub service_identifier: ServiceIdentifier,
     pub default_codec_id: CodecId,
-    pub methods: HashMap<u32, MethodSpec>,
+    pub methods: HashMap<String, MethodSpec>,
     /// Automatic mapping algorithm from http to service method
     pub method_mapper: MethodMapperId,
 }
@@ -32,7 +32,6 @@ impl From<u8> for MethodMapperId {
 }
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Dummy)]
 pub struct MethodSpec {
-    pub id: u32,
     pub method_name: String,
     pub inbound_spec: ParameterSpec,
     pub outbound_spec: ParameterSpec,

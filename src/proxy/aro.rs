@@ -81,7 +81,6 @@ impl ResolvedServiceSpec {
 
 #[derive(Debug)]
 pub struct ResolvedMethodSpec {
-    pub id: u32,
     pub method_name: String,
     pub inbound_spec: ResolvedParameterSpec,
     pub outbound_spec: ResolvedParameterSpec,
@@ -90,7 +89,6 @@ pub struct ResolvedMethodSpec {
 impl ResolvedMethodSpec {
     fn from_try(value: MethodSpec, transcoding: &Arc<Transcoding>) -> Result<Self, GwError> {
         Ok(Self {
-            id: value.id,
             method_name: value.method_name,
             inbound_spec: ResolvedParameterSpec::try_from(value.inbound_spec, transcoding)?,
             outbound_spec: ResolvedParameterSpec::try_from(value.outbound_spec, transcoding)?,
@@ -255,13 +253,14 @@ impl Aro {
                     .context(ArsSnafu)?
                     .clone();
 
-                let upstream_method = if let Some(upstream_method_id) = route_spec.upstream_method_id {
+                let upstream_method = if let Some(upstream_method_name) = route_spec.upstream_method_name {
                     Some(
                         upstream_service
                             .methods
-                            .values()
-                            .find(|method| method.id == upstream_method_id)
-                            .context(NoUpstreamMethodSnafu { id: upstream_method_id })
+                            .get(&upstream_method_name)
+                            .context(NoUpstreamMethodSnafu {
+                                name: upstream_method_name,
+                            })
                             .context(ArsSnafu)?
                             .clone(),
                     )

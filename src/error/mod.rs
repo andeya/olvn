@@ -34,8 +34,8 @@ pub enum GwError {
 pub enum ArsError {
     #[snafu(display("Could not found upstream service, id={}", id))]
     NoUpstreamService { id: u32 },
-    #[snafu(display("Could not found upstream method, id={}", id))]
-    NoUpstreamMethod { id: u32 },
+    #[snafu(display("Could not found upstream method, name={}", name))]
+    NoUpstreamMethod { name: String },
 }
 
 #[derive(Debug, Snafu)]

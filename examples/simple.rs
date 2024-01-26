@@ -32,7 +32,7 @@ async fn main() {
                 proxy_hide_headers: vec![],
                 proxy_pass_headers: vec![],
                 upstream_service_id: 1,
-                upstream_method_id: None,
+                upstream_method_name: None,
             }],
         },
     );

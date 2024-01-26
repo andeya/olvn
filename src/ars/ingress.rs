@@ -47,5 +47,5 @@ pub struct IngressRouteSpec {
     pub proxy_pass_headers: Vec<HeaderName>,
     pub upstream_service_id: u32,
     /// If None, use automapper
-    pub upstream_method_id: Option<u32>,
+    pub upstream_method_name: Option<String>,
 }
