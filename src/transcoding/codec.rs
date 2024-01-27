@@ -12,17 +12,32 @@ pub struct Codec {
     pub decode: fn(&[u8]) -> Result<Entity, GwError>,
 }
 
+impl Codec {
+    pub(crate) fn buildin() -> [Option<Self>; CodecId::MIN_CUSTOM_ID.as_usize()] {
+        let mut list = [None; CodecId::MIN_CUSTOM_ID.as_usize()];
+        list[CodecId::JSON.as_usize()] = Some(Self {
+            id: CodecId(0),
+            encode: |entity| serde_json::to_vec(&entity).context(JsonMarshalSnafu),
+            decode: |bytes| serde_json::from_slice(bytes).context(JsonUnmarshalSnafu),
+        });
+        list
+    }
+}
+
 #[allow(dead_code)]
 impl CodecId {
-    pub const NO_CARE: CodecId = CodecId(0u8);
+    pub const UNKNOWN: CodecId = CodecId(0u8);
+    pub const DEFAULT: CodecId = Self::JSON;
     pub const JSON: CodecId = CodecId(1u8);
     pub const FORM_URLENCODED: CodecId = CodecId(2u8);
     pub const FORM_DATA: CodecId = CodecId(3u8);
     pub const TEXT_HTML: CodecId = CodecId(4u8);
     pub const TEXT_PLAIN: CodecId = CodecId(5u8);
     pub const TEXT_PROTOBUF: CodecId = CodecId(6u8);
-    pub const MIN_CUSTOM_NUM: CodecId = CodecId(100u8);
-
+    pub const MIN_CUSTOM_ID: CodecId = CodecId(100u8);
+    pub const fn as_usize(self) -> usize {
+        self.0 as usize
+    }
     pub(crate) fn from_request<F: Fn(&Request) -> Option<Self>>(req: &Request, main_mapping: Option<F>) -> Self {
         if let Some(main_mapping) = main_mapping {
             if let Some(et) = main_mapping(req) {
@@ -38,10 +53,10 @@ impl CodecId {
                 Some(h) if h == b"text/plain" => CodecId::TEXT_PLAIN,
                 Some(h) if h == b"application/x-protobuf" => CodecId::TEXT_PROTOBUF,
                 Some(h) if h == b"text/html" => CodecId::TEXT_HTML,
-                _ => Self::NO_CARE,
+                _ => Self::UNKNOWN,
             }
         } else {
-            Self::NO_CARE
+            Self::UNKNOWN
         }
     }
 

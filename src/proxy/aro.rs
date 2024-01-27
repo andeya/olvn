@@ -4,8 +4,8 @@ use crate::error::*;
 use crate::transcoding::{Codec, Converter, MethodMapper, Transcoding};
 
 use crate::ars::{
-    Ars, ConvertOption, Domain, EntitySchema, HeaderName, HttpLoc, Method, MethodSpec, Namespace, ObjectSchema,
-    ParameterSpec, ServiceIdentifier, ServiceSpec,
+    Ars, CodecId, ConvertOption, Domain, EntitySchema, HeaderName, HttpLoc, Method, MethodMapperId, MethodSpec,
+    Namespace, ObjectSchema, ParameterSpec, ServiceIdentifier, ServiceSpec,
 };
 
 /// API Runtime Object, it is instance created in the runtime
@@ -44,7 +44,7 @@ pub struct ResolvedServiceSpec {
     pub default_codec: Codec,
     pub methods: HashMap<String, Arc<ResolvedMethodSpec>>,
     /// Automatic mapping algorithm from http to service method
-    pub method_mapper: MethodMapper,
+    pub method_mapper: Option<MethodMapper>,
 }
 
 impl ResolvedServiceSpec {
@@ -54,7 +54,11 @@ impl ResolvedServiceSpec {
             service_name: value.service_name,
             service_identifier: value.service_identifier,
             default_codec: transcoding
-                .get_codec(value.default_codec_id)
+                .get_codec(if CodecId::UNKNOWN == value.default_codec_id {
+                    CodecId::DEFAULT
+                } else {
+                    value.default_codec_id
+                })
                 .context(NoCodecSnafu {
                     id: value.default_codec_id,
                 })
@@ -69,12 +73,18 @@ impl ResolvedServiceSpec {
                     ))
                 })
                 .collect::<Result<HashMap<_, _>, _>>()?,
-            method_mapper: transcoding
-                .get_method_mapper(value.method_mapper)
-                .context(NoMethodMapperSnafu {
-                    id: value.method_mapper,
-                })
-                .context(MethodMapperSnafu)?,
+            method_mapper: if value.method_mapper == MethodMapperId::UNKNOWN {
+                None
+            } else {
+                Some(
+                    transcoding
+                        .get_method_mapper(value.method_mapper)
+                        .context(NoMethodMapperSnafu {
+                            id: value.method_mapper,
+                        })
+                        .context(MethodMapperSnafu)?,
+                )
+            },
         })
     }
 }
@@ -107,7 +117,13 @@ impl ResolvedParameterSpec {
     fn try_from(value: ParameterSpec, transcoding: &Arc<Transcoding>) -> Result<Self, GwError> {
         Ok(Self {
             entity_spec: ResolvedEntitySchema::try_from(value.entity_spec, transcoding)?,
-            codec: if let Some(id) = value.codec_id {
+            codec: if let Some(id) = value.codec_id.map_or(None, |code_id| {
+                if code_id == CodecId::UNKNOWN {
+                    None
+                } else {
+                    Some(code_id)
+                }
+            }) {
                 Some(
                     transcoding
                         .get_codec(id)
