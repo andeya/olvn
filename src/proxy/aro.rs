@@ -25,7 +25,7 @@ pub struct RouteMapper {
 
 #[derive(Debug)]
 pub struct ProxyHandler {
-    pub(crate) id: u32,
+    pub(crate) route_id: u32,
     /// such as `/a/b/c`
     pub(crate) path: String,
     pub(crate) method: Method,
@@ -285,7 +285,7 @@ impl Aro {
                 };
 
                 let handler = Arc::new(ProxyHandler {
-                    id,
+                    route_id: id,
                     path,
                     method,
                     proxy_hide_headers,
