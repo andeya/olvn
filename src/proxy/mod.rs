@@ -1,14 +1,9 @@
-use crate::ars::{Entity, ServiceIdentifier};
+use crate::ars::Entity;
 use crate::routing::{IntoResponse, Request, Response};
 use crate::state::GwContext;
 mod aro;
 mod discovery;
 pub use aro::{Aro, ProxyHandler};
-
-#[derive(Default, Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct ServiceEndpoint {
-    pub identifier: ServiceIdentifier,
-}
 
 impl ProxyHandler {
     #[inline]

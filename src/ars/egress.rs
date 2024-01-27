@@ -1,5 +1,4 @@
 use fake::Dummy;
-use http::uri::{InvalidUri, Uri};
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::ops::Deref;
@@ -143,8 +142,11 @@ impl ServiceIdentifier {
     pub fn new() -> Self {
         ServiceIdentifier(String::new())
     }
-    pub fn parse(&self) -> Result<Uri, InvalidUri> {
-        self.0.parse()
+}
+
+impl Display for ServiceIdentifier {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

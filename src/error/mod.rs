@@ -3,6 +3,8 @@ pub use snafu::prelude::*;
 use crate::ars::CodecId;
 use crate::ars::ConverterId;
 use crate::ars::MethodMapperId;
+use crate::ars::ServiceIdentifier;
+use std::fmt::Display;
 
 #[derive(Debug, Snafu)]
 #[snafu(visibility(pub))]
@@ -24,6 +26,9 @@ pub enum GwError {
 
     #[snafu(display("JsonUnmarshal: {}", source))]
     JsonUnmarshal { source: serde_json::Error },
+
+    #[snafu(display("Discovery: {}", source))]
+    Discovery { source: DiscoveryError },
 
     #[snafu(display("Could not read file: {}", source))]
     Read { source: std::io::Error },
@@ -58,3 +63,32 @@ pub enum MethodMapperError {
     #[snafu(display("Could not found method mapper, id={id}"))]
     NoMethodMapper { id: MethodMapperId },
 }
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
+pub enum DiscoveryError {
+    #[snafu(display("Invalid service identifier {service_identifier}, reason={source}"))]
+    InvalidServiceIdentifier {
+        source: AnyReason,
+        service_identifier: ServiceIdentifier,
+    },
+    #[snafu(display("Could not found discovery, scheme={scheme}"))]
+    NoDiscovery { scheme: String },
+}
+
+#[derive(Debug)]
+pub struct AnyReason(String);
+
+impl AnyReason {
+    pub fn new(source: String) -> Self {
+        Self(source)
+    }
+}
+
+impl Display for AnyReason {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for AnyReason {}
