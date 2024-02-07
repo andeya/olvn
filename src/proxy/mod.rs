@@ -1,8 +1,8 @@
-use crate::ars::Entity;
+mod aro;
+
+use crate::error::GwError;
 use crate::routing::{IntoResponse, Request, Response};
 use crate::state::GwContext;
-mod aro;
-mod discovery;
 pub use aro::{Aro, ProxyHandler};
 
 impl ProxyHandler {
@@ -13,7 +13,7 @@ impl ProxyHandler {
         format!("method={}, path={}, state={:?}", self.method, self.path, state).into_response()
     }
     #[inline]
-    fn convert_request(&self, _req: &Request) -> Option<Entity> {
+    fn convert_request(&self, req: &mut Request) -> Result<(), GwError> {
         unimplemented!()
     }
     #[inline]

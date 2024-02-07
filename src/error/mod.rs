@@ -4,6 +4,7 @@ use crate::ars::CodecId;
 use crate::ars::ConverterId;
 use crate::ars::MethodMapperId;
 use crate::ars::ServiceIdentifier;
+use crate::endpoint::Protocol;
 use std::fmt::Display;
 
 #[derive(Debug, Snafu)]
@@ -29,6 +30,9 @@ pub enum GwError {
 
     #[snafu(display("Discovery: {}", source))]
     Discovery { source: DiscoveryError },
+
+    #[snafu(display("Protocol: {}", source))]
+    Protocol { source: ProtocolError },
 
     #[snafu(display("Could not read file: {}", source))]
     Read { source: std::io::Error },
@@ -74,6 +78,13 @@ pub enum DiscoveryError {
     },
     #[snafu(display("Could not found discovery, scheme={scheme}"))]
     NoDiscovery { scheme: String },
+}
+
+#[derive(Debug, Snafu)]
+#[snafu(visibility(pub))]
+pub enum ProtocolError {
+    #[snafu(display("Could not found protocol {protocol}"))]
+    NoProtocol { protocol: Protocol },
 }
 
 #[derive(Debug)]

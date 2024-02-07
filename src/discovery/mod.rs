@@ -1,5 +1,5 @@
-use crate::{ars::ServiceIdentifier, error::*};
-use http::uri::{Authority, InvalidUri, PathAndQuery, Uri};
+use crate::{ars::ServiceIdentifier, endpoint::ServiceEndpoint, error::*};
+use http::uri::{InvalidUri, Uri};
 use snafu::{IntoError, ResultExt};
 use std::ops::Deref;
 
@@ -7,11 +7,6 @@ impl ServiceIdentifier {
     fn parse(&self) -> Result<Uri, InvalidUri> {
         self.deref().parse()
     }
-}
-
-pub trait ServiceEndpoint {
-    fn authority(&self) -> Authority;
-    fn path_and_query(&self) -> PathAndQuery;
 }
 
 #[derive(Debug, Clone)]

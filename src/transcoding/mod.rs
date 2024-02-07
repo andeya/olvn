@@ -12,9 +12,9 @@ use crate::error::*;
 
 #[derive(Debug, Clone)]
 pub struct Transcoding {
-    converter_store: [Option<Converter>; 255],
-    codec_store: [Option<Codec>; 255],
-    method_mapper_store: [Option<MethodMapper>; 255],
+    converter_store: [Option<Converter>; u8::MAX as usize],
+    codec_store: [Option<Codec>; u8::MAX as usize],
+    method_mapper_store: [Option<MethodMapper>; u8::MAX as usize],
 }
 
 impl Default for Transcoding {
@@ -28,9 +28,9 @@ impl Default for Transcoding {
 impl Transcoding {
     pub const fn new() -> Self {
         Self {
-            converter_store: [None; 255],
-            codec_store: [None; 255],
-            method_mapper_store: [None; 255],
+            converter_store: [None; u8::MAX as usize],
+            codec_store: [None; u8::MAX as usize],
+            method_mapper_store: [None; u8::MAX as usize],
         }
     }
     pub fn register_default(&mut self) {

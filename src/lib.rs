@@ -1,14 +1,17 @@
 pub mod ars;
+mod discovery;
+mod endpoint;
 pub mod error;
+pub mod plugin;
+mod proxy;
 mod routing;
 mod serve;
 pub mod state;
 pub mod transcoding;
+
 pub use crate::routing::*;
 pub use crate::serve::*;
 pub use tokio::{main, test};
-pub mod plugin;
-mod proxy;
 
 #[cfg(test)]
 mod tests {
